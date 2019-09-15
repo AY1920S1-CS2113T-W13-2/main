@@ -8,6 +8,9 @@ import duke.tasks.Task;
 import java.util.ArrayList;
 
 public class ReminderCommand extends Command {
+    public ReminderCommand() {
+        type = CmdType.REMIND;
+    }
 
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) {
@@ -17,19 +20,7 @@ public class ReminderCommand extends Command {
                 deadlineList.add(task);
             }
         }
-        deadlineList.sort((o1, o2) -> {
-            if (o1.getDateTime() == null) {
-                return 1;
-            } else if (o2.getDateTime() == null) {
-                return -1;
-            }
-            if (o1.getDateTime().before(o2.getDateTime())) {
-                return -1;
-            } else if (o1.getDateTime().after(o2.getDateTime())) {
-                return 1;
-            }
-            return 0;
-        });
+        ViewScheduleCommand.sortTasksByDate(deadlineList);
         int idx = 1;
         if (deadlineList.size() > 0) {
             ui.showMessage("Here are the upcoming Deadlines:");
