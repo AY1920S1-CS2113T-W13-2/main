@@ -1,11 +1,7 @@
 package duke.commands;
 
 import com.joestelmach.natty.DateGroup;
-import duke.DukeException;
-import duke.Storage;
-import duke.TaskList;
-import duke.Ui;
-import duke.Parser;
+import duke.*;
 
 public class AddCommand extends Command {
     /**
@@ -31,6 +27,18 @@ public class AddCommand extends Command {
                 throw new DukeException("     ☹ OOPS!!! The description of a deadline cannot be empty.");
             }
             type = cmdType;
+        } else if (cmdType == CmdType.DAILY) {
+            if (input.length() == 10) {
+                throw new DukeException("     ☹ OOPS!!! The description of a recurring task cannot be empty.");
+            }
+        } else if (cmdType == CmdType.WEEKLY) {
+            if (input.length() == 11) {
+                throw new DukeException("     ☹ OOPS!!! The description of a recurring task cannot be empty.");
+            }
+        } else if (cmdType == CmdType.MONTHLY) {
+            if (input.length() == 12) {
+                throw new DukeException("     ☹ OOPS!!! The description of a recurring task cannot be empty.");
+            }
         }
     }
 
@@ -45,7 +53,7 @@ public class AddCommand extends Command {
     public void execute(TaskList tasks, Ui ui, Storage storage) throws DukeException {
 
         switch (type) {
-        case TODO:
+         case TODO:
             ui.showMessage(Parser.runTodo(tasks.getData(), input, 0));
             storage.write(tasks.getData());
             break;
@@ -56,6 +64,11 @@ public class AddCommand extends Command {
         case EVENT:
             ui.showMessage(Parser.runEvent(tasks.getData(), input, 0));
             storage.write(tasks.getData());
+            break;
+        case DAILY:
+            //ui.showMessage((Parser.runDaily(tasks.getData(), input, 0)));
+            //storage.write(tasks.getData());
+
             break;
         default:
             throw new DukeException("     [Unknown COMMAND TYPE]");

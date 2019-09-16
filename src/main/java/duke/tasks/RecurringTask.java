@@ -1,17 +1,14 @@
 package duke.tasks;
 
+import com.joestelmach.natty.DateGroup;
 import duke.DukeException;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Calendar;
-import com.joestelmach.natty.DateGroup;
 
 public class RecurringTask extends ToDo{
-    Date date;
-    Frequency frequency;
-    String freq;
+    private Date date;
+    protected Frequency frequency;
+    protected String freq;
 
     public enum Frequency {
         DAILY, WEEKLY, MONTHLY
@@ -25,7 +22,7 @@ public class RecurringTask extends ToDo{
         try {
             setFrequency(frequency);
         } catch (DukeException e) {
-            e.getMessage();
+            //e.getMessage();
         }
     }
 
@@ -50,16 +47,28 @@ public class RecurringTask extends ToDo{
 
     @Override
     public String toString() {
-        return ("[]" + description);
+        char freqLetter;
+        if (this.frequency == Frequency.DAILY) {
+            freqLetter = 'd';
+        } else if (this.frequency == Frequency.WEEKLY) {
+            freqLetter = 'w';
+        } else {
+            freqLetter = 'm';
+        }
+        return ("[R][" + freqLetter + "]" + "[" + super.getStatusIcon() + "]" + description);
     }
 
     @Override
-    public String getDateTime() {
-        return null;
+    public Date getDateTime() {
+        return this.date;
     }
 
     @Override
     public String getExtra() {
-        return null;
+        return freq;
+    }
+
+    public Frequency getFrequency() {
+        return this.frequency;
     }
 }

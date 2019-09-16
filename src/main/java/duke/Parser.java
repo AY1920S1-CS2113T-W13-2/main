@@ -2,6 +2,7 @@ package duke;
 
 import duke.commands.*;
 import duke.tasks.*;
+import com.joestelmach.natty.DateGroup;
 
 import java.util.ArrayList;
 
@@ -32,6 +33,13 @@ public class Parser {
         } else if (input.length() > 6 && input.substring(0,6).equals("delete")) {
             return new DeleteCommand(input);
         } else if (input.length() >= 4 && input.substring(0, 4).equals("todo")) {
+            if (input.contains("/daily")) {
+                return new AddCommand(Command.CmdType.DAILY, input);
+            } else if (input.contains("/weekly")) {
+                return new AddCommand(Command.CmdType.WEEKLY, input);
+            } else if (input.contains("/monthly")) {
+                return new AddCommand(Command.CmdType.MONTHLY, input);
+            }
             return new AddCommand(Command.CmdType.TODO, input);
         } else if (input.length() >= 5 && input.substring(0, 5).equals("event")) {
             return new AddCommand(Command.CmdType.EVENT, input);
@@ -167,4 +175,19 @@ public class Parser {
         Task tempTask = new Event(tt1, tt2);
         return getString(data, state, tempTask);
     }
+/*
+    public static String runDaily(ArrayList<Task> data, String input, int state) {
+        input = input.substring(5).trim();
+        String tt1, tt2;
+        int token;
+        token = input.indexOf("/");
+        tt1 = input.substring(0, token - 1);
+        tt2 = input.substring(token + 7);
+        // parse date here
+        Task tempTask = new RecurringTask(tt1, , "daily");
+        // add daily to tasklist like 6 times here
+        return getString(data, state, tempTask);
+    } */
+
+
 }
