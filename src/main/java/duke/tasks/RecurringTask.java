@@ -50,7 +50,7 @@ public class RecurringTask extends ToDo{
 
     @Override
     public String toString() {
-        return ("[R]" + description + " (at: " + date + ")");
+        return ("[" + freq + "]" + description);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class RecurringTask extends ToDo{
 
     @Override
     public String getExtra() {
-        return freq;
+        return this.date.toString();
     }
 
     public Frequency getFrequency() {

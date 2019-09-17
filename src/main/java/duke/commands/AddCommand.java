@@ -53,15 +53,15 @@ public class AddCommand extends Command {
             break;
         case DAILY:
             ui.showMessage(Parser.runRecurring(tasks.getData(), input, 0, "daily"));
-            //storage.write(tasks.getData());
+            storage.write(tasks.getData());
             break;
         case WEEKLY:
             ui.showMessage(Parser.runRecurring(tasks.getData(), input, 0, "weekly"));
-            //storage.write(tasks.getData());
+            storage.write(tasks.getData());
             break;
         case MONTHLY:
             ui.showMessage(Parser.runRecurring(tasks.getData(), input, 0, "monthly"));
-            //storage.write(tasks.getData());
+            storage.write(tasks.getData());
             break;
         default:
             throw new DukeException("     [Unknown COMMAND TYPE]");
