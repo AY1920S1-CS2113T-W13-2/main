@@ -173,18 +173,47 @@ public class Parser {
      *              2 : Returns null string with checked task
      * @return String which highlights what Duke processed
      */
-
-
     public static String runEvent(ArrayList<Task> data, String input, int state) throws DukeException {
-
         input = input.substring(6);
         int startOfAt = input.indexOf("/");
         String tt1 = input.substring(0, startOfAt - 1);
         String tt2 = input.substring(startOfAt + 4);
         Task tempTask = new Event(tt1, tt2);
-        return getString(data, state, tempTask);
+        if (noClash(data, tempTask)) {
+            return getString(data, state, tempTask);
+        } else {
+            throw new DukeException("Please change date of new event to be added or delete current event");
+        }
     }
 
+    /**
+     * Checks if new event clash of with existing event.
+     * Clash only checked against task of EVENT type
+     * @param newTask new task that use wants to add
+     * @return false if no clash is found
+     */
+    public static boolean noClash(ArrayList<Task> data, Task newTask) throws DukeException {
+        for (Task task : data) {
+            if (task instanceof Event) {
+                if (task.getExtra().equals(newTask.getExtra().toString())) {
+                    throw new DukeException("     ☹ OOPS!!! This new event clashes with\n " + task.getFullString());
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Confirm slot for tentative event, and add that event to the task list.
+     * @param data ArrayList of Tasks that's currently being stored
+     * @param input Command input by user
+     * @param state The type of output needed:
+     *              0 : Needs to return a string
+     *              1 : Returns null string with unchecked task
+     *              2 : Returns null string with checked task
+     * @return String which highlights what Duke processed
+     * @throws DukeException Shows error when unknown slot or no valid slot
+     */
     public static String runConfirm(ArrayList<Task> data, String input, int state) throws DukeException {
         input = input.substring(8);
         int num;
