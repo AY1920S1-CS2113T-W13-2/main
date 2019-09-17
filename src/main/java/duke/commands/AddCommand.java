@@ -16,30 +16,16 @@ public class AddCommand extends Command {
             if (input.length() == 4) {
                 throw new DukeException("     ☹ OOPS!!! The description of a todo cannot be empty.");
             }
-            type = cmdType;
         } else if (cmdType == CmdType.EVENT) {
             if (input.length() == 5) {
                 throw new DukeException("     ☹ OOPS!!! The description of a event cannot be empty.");
             }
-            type = cmdType;
         } else if (cmdType == CmdType.DEADLINE) {
             if (input.length() == 8) {
                 throw new DukeException("     ☹ OOPS!!! The description of a deadline cannot be empty.");
             }
-            type = cmdType;
-        } else if (cmdType == CmdType.DAILY) {
-            if (input.length() == 10) {
-                throw new DukeException("     ☹ OOPS!!! The description of a recurring task cannot be empty.");
-            }
-        } else if (cmdType == CmdType.WEEKLY) {
-            if (input.length() == 11) {
-                throw new DukeException("     ☹ OOPS!!! The description of a recurring task cannot be empty.");
-            }
-        } else if (cmdType == CmdType.MONTHLY) {
-            if (input.length() == 12) {
-                throw new DukeException("     ☹ OOPS!!! The description of a recurring task cannot be empty.");
-            }
         }
+        type = cmdType;
     }
 
     /**
@@ -66,9 +52,16 @@ public class AddCommand extends Command {
             storage.write(tasks.getData());
             break;
         case DAILY:
-            //ui.showMessage((Parser.runDaily(tasks.getData(), input, 0)));
+            ui.showMessage(Parser.runRecurring(tasks.getData(), input, 0, "daily"));
             //storage.write(tasks.getData());
-
+            break;
+        case WEEKLY:
+            ui.showMessage(Parser.runRecurring(tasks.getData(), input, 0, "weekly"));
+            //storage.write(tasks.getData());
+            break;
+        case MONTHLY:
+            ui.showMessage(Parser.runRecurring(tasks.getData(), input, 0, "monthly"));
+            //storage.write(tasks.getData());
             break;
         default:
             throw new DukeException("     [Unknown COMMAND TYPE]");

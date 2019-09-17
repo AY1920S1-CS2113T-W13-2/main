@@ -124,7 +124,7 @@ public class Storage {
                 String st1;
                 st1 = task.toString().substring(1, 2);
                 String st4 = null;
-                if (st1.equals("D") || st1.equals("E")) {
+                if (st1.equals("D") || st1.equals("E") || st1.equals("R")) {
                     st4 = task.getExtra();
                 }
                 String st2;

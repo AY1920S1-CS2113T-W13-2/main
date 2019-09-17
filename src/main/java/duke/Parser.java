@@ -5,6 +5,8 @@ import duke.tasks.*;
 import com.joestelmach.natty.DateGroup;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 public class Parser {
 
@@ -199,17 +201,34 @@ public class Parser {
         Task tempTask = new Event(TentativeEvent.description, TentativeEvent.dates.get(num - 1));
         return getString(data, state, tempTask);
     }
-    /*
-    public static String runDaily(ArrayList<Task> data, String input, int state) {
+
+    public static String runRecurring(ArrayList<Task> data, String input, int state, String freq) throws DukeException {
         input = input.substring(5).trim();
         String tt1, tt2;
         int token;
         token = input.indexOf("/");
         tt1 = input.substring(0, token - 1);
-        tt2 = input.substring(token + 7);
+        if (freq.equals("daily")) {
+            tt2 = input.substring(token + 7);
+        } else if (freq.equals("weekly")) {
+            tt2 = input.substring(token + 8);
+        } else {
+            tt2 = input.substring(token + 9);
+        }
+
         // parse date here
-        Task tempTask = new RecurringTask(tt1, , "daily");
-        // add daily to tasklist like 6 times here
+        Date startDate = parseDate(tt2);
+        Task tempTask = new RecurringTask(tt1, startDate, freq);
         return getString(data, state, tempTask);
-    } */
+    }
+
+    public static Date parseDate(String tt2) throws DukeException{
+        try {
+            com.joestelmach.natty.Parser parser = new com.joestelmach.natty.Parser();
+            List<DateGroup> groups = parser.parse(tt2);
+            return groups.get(0).getDates().get(0);
+        } catch (Exception e) {
+            throw new DukeException("   Date cannot be parsed: " + tt2);
+        }
+    }
 }

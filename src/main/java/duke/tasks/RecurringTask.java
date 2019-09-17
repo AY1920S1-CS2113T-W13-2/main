@@ -1,8 +1,8 @@
 package duke.tasks;
 
-import com.joestelmach.natty.DateGroup;
 import duke.DukeException;
 
+import java.util.Calendar;
 import java.util.Date;
 
 public class RecurringTask extends ToDo{
@@ -24,21 +24,24 @@ public class RecurringTask extends ToDo{
         } catch (DukeException e) {
             //e.getMessage();
         }
+
+        //update date if it is past current date
+        updateDate();
     }
 
     private void setFrequency (String freq) throws DukeException {
         switch (freq) {
             case "daily":
                 this.frequency = Frequency.DAILY;
-                this.freq = "DAILY";
+                this.freq = "d";
                 break;
             case "weekly":
                 this.frequency = Frequency.WEEKLY;
-                this.freq = "WEEKLY";
+                this.freq = "w";
                 break;
             case "monthly":
                 this.frequency = Frequency.MONTHLY;
-                this.freq = "MONTHLY";
+                this.freq = "m";
                 break;
             default:
                 throw new DukeException("Please enter a frequency: daily, weekly or monthly");
@@ -47,15 +50,12 @@ public class RecurringTask extends ToDo{
 
     @Override
     public String toString() {
-        char freqLetter;
-        if (this.frequency == Frequency.DAILY) {
-            freqLetter = 'd';
-        } else if (this.frequency == Frequency.WEEKLY) {
-            freqLetter = 'w';
-        } else {
-            freqLetter = 'm';
-        }
-        return ("[R][" + freqLetter + "]" + "[" + super.getStatusIcon() + "]" + description);
+        return ("[R]" + description + " (at: " + date + ")");
+    }
+
+    @Override
+    public String getFullString() {
+        return ("[R][" + freq + "]" + "[" + getStatusIcon() + "] " + description + " (at: " + date + ")");
     }
 
     @Override
@@ -70,5 +70,26 @@ public class RecurringTask extends ToDo{
 
     public Frequency getFrequency() {
         return this.frequency;
+    }
+
+    public void updateDate() {
+        Date currentDate = new Date();
+        Calendar c = Calendar.getInstance();
+        while (date.before(currentDate)) {
+            unmark();
+            c.setTime(date);
+            switch (frequency) {
+                case DAILY:
+                    c.add(Calendar.DATE, 1);
+                    break;
+                case WEEKLY:
+                    c.add(Calendar.WEEK_OF_YEAR, 1);
+                    break;
+                case MONTHLY:
+                    c.add(Calendar.MONTH, 1);
+                    break;
+            }
+            date = c.getTime();
+        }
     }
 }
