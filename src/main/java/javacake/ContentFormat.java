@@ -21,7 +21,7 @@ public abstract class ContentFormat {
             throw new DukeException("File does not exist!");
         }
         try {
-            while(reader.readLine() != null) {
+            while (reader.readLine() != null) {
                 toDisplay.append(reader.readLine()).append("\n");
             }
             reader.close();
