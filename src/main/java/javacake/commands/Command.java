@@ -17,7 +17,7 @@ public abstract class Command {
      */
     public enum CmdType {
         EXIT, LIST, FIND, DONE, DELETE, TODO, DEADLINE, REMIND, VIEWSCH,
-        EDIT, BACK, GOTO, QUIZ
+        EDIT, BACK, GOTO
     }
 
     public abstract void execute(ProgressStack progressStack, Ui ui, Storage storage, Profile profile)

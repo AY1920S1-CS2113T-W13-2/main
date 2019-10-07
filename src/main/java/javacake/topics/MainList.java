@@ -13,7 +13,6 @@ public class MainList extends ListFormat {
         mainContentList.add("Java Basics");
         mainContentList.add("OOP concepts");
         mainContentList.add("Useful Extensions");
-        mainContentList.add("Overall Quiz");
     }
 
     /**
