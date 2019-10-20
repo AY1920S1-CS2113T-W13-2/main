@@ -69,6 +69,7 @@ public class QuizCommand extends Command {
             Question question = chosenQuestions.get(i);
             ui.displayQuiz(question.getQuestion(), i + 1, QuestionList.MAX_QUESTIONS);
             String userAnswer = ui.readCommand();
+            chosenQuestions.get(i).setUserAnswer(userAnswer);
             if (question.isAnswerCorrect(userAnswer)) {
                 currScore++;
             }
@@ -82,7 +83,12 @@ public class QuizCommand extends Command {
         overwriteOldScore(currScore, profile);
 
         ui.displayResults(currScore, QuestionList.MAX_QUESTIONS);
-        return "";
+        String nextCommand = ui.readCommand().trim();
+        if (nextCommand.equals("review")) {
+            return new ReviewCommand(chosenQuestions).execute(progressStack, ui, storage, profile);
+        } else {
+            return "";
+        }
     }
 
     /**
