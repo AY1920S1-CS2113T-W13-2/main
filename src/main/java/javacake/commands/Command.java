@@ -1,10 +1,10 @@
 package javacake.commands;
 
-import javacake.DukeException;
+import javacake.exceptions.DukeException;
 import javacake.ProgressStack;
-import javacake.Profile;
-import javacake.Ui;
-import javacake.Storage;
+import javacake.storage.Profile;
+import javacake.ui.Ui;
+import javacake.storage.Storage;
 
 import java.io.IOException;
 
@@ -21,7 +21,7 @@ public abstract class Command {
     }
 
     public abstract String execute(ProgressStack progressStack, Ui ui, Storage storage, Profile profile)
-            throws DukeException, IOException;
+            throws DukeException;
 
     /**
      * Method to get the type of command.

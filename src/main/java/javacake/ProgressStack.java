@@ -1,38 +1,30 @@
 package javacake;
 
-import java.io.BufferedReader;
+import javacake.exceptions.DukeException;
+
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.InputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.URL;
-import java.nio.Buffer;
+import java.security.CodeSource;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 
 public class ProgressStack {
-    private File f1;
-    //private String defaultFilePath = null;
-    //private String currentFilePath = null;
+    private String defaultFilePath = "content/MainList";
+    private static String currentFilePath = "content/MainList";
 
-    private String defaultFilePath = "src/main/resources/MainList";
-    private static String currentFilePath = "src/main/resources/MainList";
-    private static ArrayList<String> filePathQueries = new ArrayList<>();
-
-    private File[] listOfFiles;
+    private List<String> listOfFiles = new ArrayList<>();
     private static boolean isDirectory = true;
 
-    /*public ProgressStack() throws DukeException {
-        try {
-            f1 = new File(getClass().getResource("/content/MainList").toURI());
-        } catch (URISyntaxException e) {
-            throw new DukeException("Unable to load file directory");
-        }
-        System.out.println(f1.getAbsolutePath());
-        defaultFilePath = f1.getPath();
-        currentFilePath = f1.getPath();
-    }*/
+    public ProgressStack() {
+
+    }
 
     /**
      * Returns the starting file path to application content.
@@ -43,17 +35,47 @@ public class ProgressStack {
     }
 
     /**
-     * Stores all files in the filePath into listOfFiles.
-     * @param filePath path to the root directory.
+     * Stores all files in the currentFilePath into listOfFiles.
      */
-    public void loadFiles(String filePath) throws DukeException {
-        //InputStream inputStream = this.getClass().getResourceAsStream(filePath);
-        File folder = new File(filePath);
+    public void loadFiles() throws DukeException {
+        String[] tempListFiles = currentFilePath.split("/");
+        int currFileSlashCounter = tempListFiles.length;
+        listOfFiles.clear();
         try {
-            listOfFiles = folder.listFiles();
-            assert listOfFiles != null;
-            Arrays.sort(listOfFiles); //in case the files stored locally are not in alphabetical order
-        } catch (NullPointerException e) {
+            CodeSource src = ProgressStack.class.getProtectionDomain().getCodeSource();
+            boolean isJarMode = true;
+            if (src != null) { //jar
+                URL jar = src.getLocation();
+                ZipInputStream zip = new ZipInputStream(jar.openStream());
+                while (true) {
+                    ZipEntry e = zip.getNextEntry();
+                    if (e == null) {
+                        isJarMode = false;
+                        break;
+                    }
+                    String name = e.getName();
+                    //System.out.println(name);
+                    if (name.startsWith(currentFilePath)) {
+                        String[] listingFiles = name.split("/");
+                        if (listingFiles.length == currFileSlashCounter + 1) {
+                            System.out.println(name + " == " + currFileSlashCounter);
+                            listOfFiles.add(listingFiles[currFileSlashCounter]);
+                        }
+                    }
+                }
+            }
+
+            if (!isJarMode) { //non-jar
+                InputStream inputStream = ClassLoader.getSystemClassLoader().getResourceAsStream(currentFilePath);
+                BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+                String currentLine;
+                while ((currentLine = br.readLine()) != null) {
+                    //System.out.println(currentLine);
+                    listOfFiles.add(currentLine);
+                }
+                br.close();
+            }
+        } catch (NullPointerException | IOException e) {
             throw new DukeException("Content not found!" + "\nPls key 'back' or 'list' to view previous content!");
         }
     }
@@ -79,7 +101,7 @@ public class ProgressStack {
     public String gotoFilePath(int index) throws DukeException {
 
         try {
-            return filePathQueries.get(index);
+            return listOfFiles.get(index);
         } catch (IndexOutOfBoundsException e) {
             throw new DukeException(e.getMessage() + "\n Pls key 'back' or 'list' to view previous content");
         }
@@ -102,9 +124,8 @@ public class ProgressStack {
      * Used for BackCommand.
      */
     public void backToPreviousPath() {
-        File currentFile = new File(currentFilePath);
         if (!currentFilePath.equals(defaultFilePath)) {
-            if (currentFile.isDirectory()) {
+            if (!currentFilePath.contains(".txt")) {
                 currentFilePath = gotoParentFilePath(currentFilePath);
             } else {
                 currentFilePath = gotoParentFilePath(gotoParentFilePath(currentFilePath));
@@ -135,8 +156,8 @@ public class ProgressStack {
      */
     public String displayDirectories() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Here are the ").append(filePathQueries.size()).append(" subtopics available!\n");
-        for (String queries : filePathQueries) {
+        sb.append("Here are the ").append(listOfFiles.size()).append(" subtopics available!\n");
+        for (String queries : listOfFiles) {
             sb.append(queries).append("\n");
         }
         sb.append("Key in the index to learn more about the topic!").append("\n");
@@ -150,15 +171,17 @@ public class ProgressStack {
      */
     public String readQuery() throws DukeException {
         try {
-            BufferedReader br = new BufferedReader(new FileReader(currentFilePath));
+            InputStream inputStream = ClassLoader.getSystemClassLoader().getResourceAsStream(currentFilePath);
+            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
             StringBuilder sb = new StringBuilder();
             String sentenceRead;
             while ((sentenceRead = br.readLine()) != null) {
                 sb.append(sentenceRead).append("\n");
             }
+            br.close();
             return sb.toString();
         } catch (IOException e) {
-            throw new DukeException(e.getMessage());
+            throw new DukeException("FILE DED BRO");
         }
     }
 
@@ -187,8 +210,7 @@ public class ProgressStack {
         insertQueries();
         if (isDirectory) {
             return displayDirectories();
-        }
-        else {
+        } else {
             return readQuery();
         }
     }
@@ -201,21 +223,19 @@ public class ProgressStack {
      */
     public void insertQueries() throws DukeException {
         clearQueries();
-        loadFiles(currentFilePath);
-        for (File listOfFile : listOfFiles) {
-            if (listOfFile.isFile()) {
+        loadFiles();
+        for (String listOfFile : listOfFiles) {
+            if (listOfFile.contains(".txt")) {
                 isDirectory = false;
-                filePathQueries.add(listOfFile.getName());
-            } else if (listOfFile.isDirectory()) {
+            } else {
                 isDirectory = true;
-                filePathQueries.add(listOfFile.getName());
             }
         }
 
     }
 
     public void clearQueries() {
-        filePathQueries.clear();
+        listOfFiles.clear();
     }
 
 }
