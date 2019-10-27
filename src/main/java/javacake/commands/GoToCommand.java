@@ -2,6 +2,8 @@ package javacake.commands;
 
 import javacake.Duke;
 import javacake.exceptions.DukeException;
+import javacake.quiz.QuestionType;
+import javacake.quiz.QuizSession;
 import javacake.storage.Profile;
 import javacake.ProgressStack;
 import javacake.storage.Storage;
@@ -47,42 +49,42 @@ public class GoToCommand extends Command {
         if (filePath.contains("Quiz")) {
             if (filePath.contains("1. Java Basics")) {
                 if (Duke.isCliMode()) {
-                    return new QuizCommand(Question.QuestionType.BASIC, Duke.isCliMode())
+                    return new QuizSession(QuestionType.BASIC, Duke.isCliMode())
                             .execute(progressStack, ui, storage, profile);
                 } else {
-                    QuizCommand.setProfile(profile);
+                    QuizSession.setProfile(profile);
                     progressStack.insertQueries();
-                    QuizCommand.progressStack = progressStack;
+                    QuizSession.progressStack = progressStack;
                     return "!@#_QUIZ_1";
                 }
             } else if (filePath.contains("2. Object-Oriented Programming")) {
                 if (Duke.isCliMode()) {
-                    return new QuizCommand(Question.QuestionType.OOP, Duke.isCliMode())
+                    return new QuizSession(QuestionType.OOP, Duke.isCliMode())
                             .execute(progressStack, ui, storage, profile);
                 } else {
-                    QuizCommand.setProfile(profile);
+                    QuizSession.setProfile(profile);
                     progressStack.insertQueries();
-                    QuizCommand.progressStack = progressStack;
+                    QuizSession.progressStack = progressStack;
                     return "!@#_QUIZ_2";
                 }
             } else if (filePath.contains("3. Extensions")) {
                 if (Duke.isCliMode()) {
-                    return new QuizCommand(Question.QuestionType.EXTENSIONS, Duke.isCliMode())
+                    return new QuizSession(QuestionType.EXTENSIONS, Duke.isCliMode())
                             .execute(progressStack, ui, storage, profile);
                 } else {
-                    QuizCommand.setProfile(profile);
+                    QuizSession.setProfile(profile);
                     progressStack.insertQueries();
-                    QuizCommand.progressStack = progressStack;
+                    QuizSession.progressStack = progressStack;
                     return "!@#_QUIZ_3";
                 }
             } else {
                 if (Duke.isCliMode()) {
-                    return new QuizCommand(Question.QuestionType.ALL, Duke.isCliMode())
+                    return new QuizSession(QuestionType.ALL, Duke.isCliMode())
                             .execute(progressStack, ui, storage, profile);
                 } else {
-                    QuizCommand.setProfile(profile);
+                    QuizSession.setProfile(profile);
                     progressStack.insertQueries();
-                    QuizCommand.progressStack = progressStack;
+                    QuizSession.progressStack = progressStack;
                     return "!@#_QUIZ_4";
                 }
             }

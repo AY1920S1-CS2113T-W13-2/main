@@ -1,108 +1,76 @@
-package javacake.commands;
+package javacake.quiz;
 
 import javacake.Duke;
 import javacake.Parser;
+import javacake.commands.Command;
 import javacake.exceptions.DukeException;
 import javacake.storage.Profile;
 import javacake.ProgressStack;
 import javacake.storage.Storage;
 import javacake.ui.TopBar;
 import javacake.ui.Ui;
-import javacake.quiz.Question;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Random;
 import java.util.logging.Level;
 
-public class QuizCommand extends Command {
-    //private QuestionList questionList;
-    public ArrayList<Question> chosenQuestions;
-    public ArrayList<Question> questionList = new ArrayList<>();
+public class QuizSession implements QuizManager {
+    private QuestionList questionList;
     public String filePath;
-    private Question.QuestionType qnType;
-    private Question prevQuestion;
+    //private Question prevQuestion;
     private int currScore = 0;
     private static Profile profile;
     public ScoreGrade scoreGrade;
-    public static final int MAX_QUESTIONS = 5;
     int totalNumOfQns = 0;
     public static ProgressStack progressStack;
+    private QuestionType qnType;
+    private boolean isQuizComplete;
+    public static final int MAX_QUESTIONS = 5;
+    public static final double PERCENTAGE_1 = 0.5;
+    public static final double PERCENTAGE_2 = 1.0;
 
     public enum ScoreGrade {
         BAD, OKAY, GOOD
     }
 
-
     /**
      * QuizCommand constructor for topic-based quiz.
-     * @param questionType the topic of the quiz.
+     * @param type the topic of the quiz.
      */
-    public QuizCommand(Question.QuestionType questionType, Boolean isCli) throws DukeException {
-        type = CmdType.QUIZ;
-        chosenQuestions = new ArrayList<>();
-        qnType = questionType;
+    public QuizSession(QuestionType type, boolean isCli) throws DukeException {
+        questionList = new QuestionList(type);
+        qnType = type;
         if (!isCli) {
             this.filePath = progressStack.getFullFilePath();
             runGui();
         }
+        isQuizComplete = false;
+    }
+
+    @Override
+    public String getQuestion(int index) {
+        return index + "/" + MAX_QUESTIONS + "\n" + questionList.getQuestion(index);
+    }
+
+    @Override
+    public String parseInput(int index, String input) throws DukeException {
+        if (isQuizComplete) {
+            switch (input) {
+            case ("review"):
+                return "!@#_REVIEW";
+            case ("back"):
+                // howwwwww!!!! TODO
+                return "!@#_BACK";
+            default:
+                throw new DukeException("Invalid command at this point in the program.");
+            }
+        } else {
+            checkAnswer(index, input);
+            return null;
+        }
     }
 
     public static void setProfile(Profile profile) {
-        QuizCommand.profile = profile;
-    }
-
-    /**
-     * Method to get all questions in the given directory.
-     */
-    public void getQuestions() throws DukeException {
-
-
-        for (int i = 1; i <= totalNumOfQns; i++) {
-            try {
-                String fileContentPath = filePath + "/Qn" + i + ".txt";
-                InputStream inputStream = ClassLoader.getSystemClassLoader().getResourceAsStream(fileContentPath);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-                StringBuilder stringBuilder = new StringBuilder();
-                String sentenceRead;
-                while ((sentenceRead = reader.readLine()) != null) {
-                    stringBuilder.append(sentenceRead).append("\n");
-                }
-                reader.close();
-                String[] questions = stringBuilder.toString().substring(0,stringBuilder.length() - 1).split("\\|\\s*");
-                this.questionList.add(new Question(questions[0], questions[1]));
-            } catch (IOException e) {
-                throw new DukeException("File not found!");
-            }
-        }
-
-    }
-
-
-
-    /**
-     * Randomly selects MAX_QUESTIONS number of questions of the specified topic from the list of all questions..
-     */
-    public void pickQuestions() throws DukeException {
-        ArrayList<Question> tempList = questionList;
-        Random rand = new Random();
-        ArrayList<Integer> chosenNumbers = new ArrayList<>();
-
-        for (int i = 0; i < MAX_QUESTIONS; i++) {
-            int randomNum;
-            do {
-                randomNum = rand.nextInt(tempList.size());
-            } while (chosenNumbers.contains(randomNum)); // prevents repeat questions
-            chosenNumbers.add(randomNum);
-            try {
-                chosenQuestions.add(tempList.get(randomNum));
-            } catch (IndexOutOfBoundsException e) {
-                throw new DukeException("Something went wrong when loading the quiz: index out of bounds.");
-            }
-        }
+        QuizSession.profile = profile;
     }
 
     /**
@@ -114,20 +82,17 @@ public class QuizCommand extends Command {
      * @throws DukeException Error thrown when there is a problem with score calculation.
      * @return
      */
-    @Override
     public String execute(ProgressStack progressStack, Ui ui, Storage storage, Profile profile)
             throws DukeException, IOException {
         progressStack.insertQueries();
         assert !progressStack.containsDirectory();
         this.filePath = progressStack.getFullFilePath();
         totalNumOfQns = progressStack.getNumOfFiles();
-        getQuestions();
-        pickQuestions();
         for (int i = 0; i < MAX_QUESTIONS; i++) {
-            Question question = chosenQuestions.get(i);
+            Question question = questionList.getQuestionList().get(i);
             ui.displayQuiz(question.getQuestion(), i + 1, MAX_QUESTIONS);
             String userAnswer = ui.readCommand();
-            chosenQuestions.get(i).setUserAnswer(userAnswer);
+            questionList.getQuestionList().get(i).setUserAnswer(userAnswer);
             if (question.isAnswerCorrect(userAnswer)) {
                 currScore++;
             }
@@ -143,7 +108,7 @@ public class QuizCommand extends Command {
         ui.displayResults(currScore, MAX_QUESTIONS);
         String nextCommand = ui.readCommand();
         if (nextCommand.equals("review")) {
-            return new ReviewCommand(chosenQuestions).execute(progressStack, ui, storage, profile);
+            return new ReviewCommand(questionList.getQuestionList()).execute(progressStack, ui, storage, profile);
         } else {
             Command newCommand = Parser.parse(nextCommand);
             return newCommand.execute(progressStack, ui, storage, profile);
@@ -153,11 +118,8 @@ public class QuizCommand extends Command {
     /**
      * Method to execute but for GUI.
      */
-
     public void runGui() throws DukeException {
         totalNumOfQns = progressStack.getNumOfFiles();
-        getQuestions();
-        pickQuestions();
     }
 
     /**
@@ -179,11 +141,9 @@ public class QuizCommand extends Command {
         case EXTENSIONS:
             topicIdx = 2;
             break;
-        case ALL:
+        default:
             topicIdx = 3;
             break;
-        default:
-            throw new DukeException("Topic Idx out of bounds!");
         }
         if (score > profile.getContentMarks(topicIdx)) {
             profile.setMarks(topicIdx, score);
@@ -214,11 +174,11 @@ public class QuizCommand extends Command {
      * Method to get the next Question.
      * @return the string containing the next question
      */
-    public String getNextQuestion() {
-        prevQuestion = chosenQuestions.get(chosenQuestions.size() - 1);
-        chosenQuestions.remove(chosenQuestions.size() - 1);
-        return prevQuestion.getQuestion();
-    }
+//    public String getNextQuestion() {
+//        prevQuestion = chosenQuestions.get(chosenQuestions.size() - 1);
+//        chosenQuestions.remove(chosenQuestions.size() - 1);
+//        return prevQuestion.getQuestion();
+//    }
 
     /**
      * Method to check if answer is correct.
@@ -226,18 +186,18 @@ public class QuizCommand extends Command {
      * @param input the answer inputted by the user
      * @throws DukeException error thrown if user inputs wrong type of answer.
      */
-    public void checkAnswer(String input) throws DukeException {
+    public void checkAnswer(int index, String input) throws DukeException {
         if (!isNumeric(input)) {
             throw new DukeException("Please input answers in the form of integer");
         }
-        if (prevQuestion.isAnswerCorrect(input)) {
+        if (questionList.setAndCheckUserAnswer(index, input)) {
             currScore++;
         }
     }
 
     private static boolean isNumeric(String input) {
         try {
-            int integer = Integer.parseInt(input);
+            Integer.parseInt(input);
         } catch (NumberFormatException | NullPointerException e) {
             return false;
         }
@@ -245,28 +205,31 @@ public class QuizCommand extends Command {
     }
 
     /**
-     * Method to get the score of the quiz.
+     * Method to get the results of the quiz.
      * @return String containing what Cake said about the quiz.
      * @throws DukeException error thrown if failed to overwrite score.
      */
-    public String getQuizScore() throws DukeException {
+    public String getQuizResult() throws DukeException {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("This is your score:");
         stringBuilder.append("    ").append(currScore).append(" / ").append(MAX_QUESTIONS).append("\n");
 
-        if ((double)currScore / MAX_QUESTIONS <= 0.5) {
+        if ((double)currScore / MAX_QUESTIONS <= PERCENTAGE_1) {
             stringBuilder.append("Aw, that's too bad! Try revising the topics and try again. Don't give up!");
             scoreGrade = ScoreGrade.BAD;
-        } else if ((double)currScore / MAX_QUESTIONS != 1.0) {
+        } else if ((double)currScore / MAX_QUESTIONS != PERCENTAGE_2) {
             stringBuilder.append("Almost there! Clarify some of your doubts and try again.");
             scoreGrade = ScoreGrade.OKAY;
         } else {
             stringBuilder.append("Congrats! Full marks, you're amazing!");
             scoreGrade = ScoreGrade.GOOD;
         }
+
+        stringBuilder.append("Type \"review\" to review your answers.");
         stringBuilder.append("\nType \"back\" to go back to the table of contents.");
 
         overwriteOldScore(currScore, profile);
+        isQuizComplete = true;
 
         return stringBuilder.toString();
     }

@@ -1,6 +1,6 @@
 package javacake.ui;
 
-import javacake.commands.QuizCommand;
+import javacake.quiz.QuizSession;
 import javacake.exceptions.DukeException;
 import javacake.quiz.Question;
 
@@ -181,14 +181,14 @@ public class Ui {
     public static String getQuizResults(int progress) {
         StringBuilder str = new StringBuilder();
         str.append("Here's your quiz progress so far :D\n");
-        for (int i = 0; i < 4 * QuizCommand.MAX_QUESTIONS; ++i) {
+        for (int i = 0; i < 4 * QuizSession.MAX_QUESTIONS; ++i) {
             if (i < progress) {
                 str.append("#");
             } else {
                 str.append("-");
             }
         }
-        progress = progress * 100 / (4 * QuizCommand.MAX_QUESTIONS);
+        progress = progress * 100 / (4 * QuizSession.MAX_QUESTIONS);
         if (progress == 99) {
             progress = 100;
         }

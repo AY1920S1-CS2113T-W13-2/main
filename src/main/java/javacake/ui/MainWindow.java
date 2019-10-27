@@ -3,8 +3,9 @@ package javacake.ui;
 import javacake.Duke;
 import javacake.commands.EditNoteCommand;
 import javacake.exceptions.DukeException;
-import javacake.commands.QuizCommand;
 import javacake.quiz.Question;
+import javacake.quiz.QuestionType;
+import javacake.quiz.QuizSession;
 import javacake.storage.Profile;
 import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
@@ -56,7 +57,7 @@ public class MainWindow extends AnchorPane {
     private Image userImage = new Image(this.getClass().getResourceAsStream("/images/DaUser.png"));
     private Image dukeImage = new Image(this.getClass().getResourceAsStream("/images/padoru.png"));
 
-    private QuizCommand quizCommand;
+    private QuizSession quizCommand;
     private boolean isQuiz = false;
     private boolean isStarting = true;
     private boolean isTryingReset = false;
@@ -150,7 +151,7 @@ public class MainWindow extends AnchorPane {
                         System.out.println("starting BUT not firsttime");
                     }
                 } else {
-                    //Must be quizCommand: checking of answers
+                    //Must be quizSession: checking of answers
                     handleGuiQuiz();
                     showContentContainer();
                     System.out.println("quiz answer checking");
@@ -160,7 +161,7 @@ public class MainWindow extends AnchorPane {
                     //checks for first execution of quizCommand
                     isQuiz = true;
                     Duke.logger.log(Level.INFO, "Response: " + response);
-                    response = getFirstQn(response);
+                    //response = getFirstQn(response);
                     showContentContainer();
                     System.out.println("quiz first time");
                 }
@@ -213,24 +214,24 @@ public class MainWindow extends AnchorPane {
     }
 
 
-    private String getFirstQn(String cmdMode) throws DukeException {
-        switch (cmdMode) {
-        case "!@#_QUIZ_1":
-            quizCommand = new QuizCommand(Question.QuestionType.BASIC, false);
-            break;
-        case "!@#_QUIZ_2":
-            quizCommand = new QuizCommand(Question.QuestionType.OOP, false);
-            break;
-        case "!@#_QUIZ_3":
-            quizCommand = new QuizCommand(Question.QuestionType.EXTENSIONS, false);
-            break;
-        case "!@#_QUIZ_4":
-            quizCommand = new QuizCommand(Question.QuestionType.ALL, false);
-            break;
-        default:
-        }
-        return quizCommand.getNextQuestion();
-    }
+//    private String getFirstQn(String cmdMode) throws DukeException {
+//        switch (cmdMode) {
+//        case "!@#_QUIZ_1":
+//            quizCommand = new QuizCommand(QuestionType.BASIC, false);
+//            break;
+//        case "!@#_QUIZ_2":
+//            quizCommand = new QuizCommand(QuestionType.OOP, false);
+//            break;
+//        case "!@#_QUIZ_3":
+//            quizCommand = new QuizCommand(QuestionType.EXTENSIONS, false);
+//            break;
+//        case "!@#_QUIZ_4":
+//            quizCommand = new QuizCommand(QuestionType.ALL, false);
+//            break;
+//        default:
+//        }
+//        return quizCommand.getNextQuestion();
+//    }
 
     private void handleExit() {
         response = duke.getResponse(input);
@@ -269,18 +270,18 @@ public class MainWindow extends AnchorPane {
 
 
     private void handleGuiQuiz() throws DukeException {
-        quizCommand.checkAnswer(input);
-        if (quizCommand.chosenQuestions.size() > 0) {
-            response = quizCommand.getNextQuestion();
-        } else {
-            isQuiz = false;
-            response = quizCommand.getQuizScore();
-            if (quizCommand.scoreGrade == QuizCommand.ScoreGrade.BAD) {
-                AvatarScreen.avatarMode = AvatarScreen.AvatarMode.POUT;
-            } else if (quizCommand.scoreGrade == QuizCommand.ScoreGrade.OKAY) {
-                AvatarScreen.avatarMode = AvatarScreen.AvatarMode.SAD;
-            }
-        }
+//        quizCommand.checkAnswer(input);
+//        if (quizCommand.chosenQuestions.size() > 0) {
+//            response = quizCommand.getNextQuestion();
+//        } else {
+//            isQuiz = false;
+//            response = quizCommand.getQuizScore();
+//            if (quizCommand.scoreGrade == QuizCommand.ScoreGrade.BAD) {
+//                AvatarScreen.avatarMode = AvatarScreen.AvatarMode.POUT;
+//            } else if (quizCommand.scoreGrade == QuizCommand.ScoreGrade.OKAY) {
+//                AvatarScreen.avatarMode = AvatarScreen.AvatarMode.SAD;
+//            }
+//        }
     }
 
     private void showContentContainer() {

@@ -1,4 +1,4 @@
-package javacake.commands;
+package javacake.quiz;
 
 import javacake.exceptions.DukeException;
 import javacake.storage.Profile;
