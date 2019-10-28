@@ -46,11 +46,23 @@ public class QuizSession implements QuizManager {
         isQuizComplete = false;
     }
 
+    /**
+     * Method to get the question string.
+     * @param index question index between 0 and MAX_QUESTIONS-1.
+     * @return question string.
+     */
     @Override
     public String getQuestion(int index) {
-        return index + "/" + MAX_QUESTIONS + "\n" + questionList.getQuestion(index);
+        return questionList.getQuestion(index);
     }
 
+    /**
+     * Parses valid user input for quiz session.
+     * @param index question index between 0 and MAX_QUESTIONS-1.
+     * @param input user input, either as user's answer or commands available on results page.
+     * @return command identifier if on result page, null otherwise.
+     * @throws DukeException if user answer is not integer value during quiz, or command is invalid on results page.
+     */
     @Override
     public String parseInput(int index, String input) throws DukeException {
         if (isQuizComplete) {
@@ -58,7 +70,7 @@ public class QuizSession implements QuizManager {
             case ("review"):
                 return "!@#_REVIEW";
             case ("back"):
-                // howwwwww!!!! TODO
+                // TODO tie BackCommand identifier to MainWindow
                 return "!@#_BACK";
             default:
                 throw new DukeException("Invalid command at this point in the program.");
@@ -108,7 +120,7 @@ public class QuizSession implements QuizManager {
         ui.displayResults(currScore, MAX_QUESTIONS);
         String nextCommand = ui.readCommand();
         if (nextCommand.equals("review")) {
-            return new ReviewCommand(questionList.getQuestionList()).execute(progressStack, ui, storage, profile);
+            return new ReviewSession(questionList).execute(progressStack, ui, storage, profile);
         } else {
             Command newCommand = Parser.parse(nextCommand);
             return newCommand.execute(progressStack, ui, storage, profile);
@@ -186,7 +198,7 @@ public class QuizSession implements QuizManager {
      * @param input the answer inputted by the user
      * @throws DukeException error thrown if user inputs wrong type of answer.
      */
-    public void checkAnswer(int index, String input) throws DukeException {
+    private void checkAnswer(int index, String input) throws DukeException {
         if (!isNumeric(input)) {
             throw new DukeException("Please input answers in the form of integer");
         }

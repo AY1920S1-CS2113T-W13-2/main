@@ -28,7 +28,7 @@ public class QuestionList {
     }
 
     public String getQuestion(int index) {
-        return chosenQuestions.get(index).getQuestion();
+        return index + "/" + MAX_QUESTIONS + "\n" + chosenQuestions.get(index).getQuestion();
     }
 
     public String getAnswers(int index) {
