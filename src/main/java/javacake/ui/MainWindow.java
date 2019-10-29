@@ -1,11 +1,13 @@
 package javacake.ui;
 
 import javacake.Duke;
+import javacake.commands.BackCommand;
 import javacake.commands.EditNoteCommand;
 import javacake.exceptions.DukeException;
-import javacake.quiz.Question;
+import javacake.quiz.QuestionList;
 import javacake.quiz.QuestionType;
 import javacake.quiz.QuizSession;
+import javacake.quiz.ReviewSession;
 import javacake.storage.Profile;
 import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
@@ -18,9 +20,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import org.apache.commons.lang.WordUtils;
 
 import java.util.logging.Level;
+
+import static javacake.quiz.QuestionList.MAX_QUESTIONS;
 
 /**
  * Controller for MainWindow. Provides the layout for the other controls.
@@ -57,8 +60,13 @@ public class MainWindow extends AnchorPane {
     private Image userImage = new Image(this.getClass().getResourceAsStream("/images/DaUser.png"));
     private Image dukeImage = new Image(this.getClass().getResourceAsStream("/images/padoru.png"));
 
-    private QuizSession quizCommand;
+    private QuizSession quizSession;
+    private ReviewSession reviewSession;
+    private QuestionList tempQuestionList;
     private boolean isQuiz = false;
+    private int index = 0;
+    private boolean isResult = false;
+    private boolean isReview = false;
     private boolean isStarting = true;
     private boolean isTryingReset = false;
     private boolean isWritingNote = false;
@@ -115,7 +123,7 @@ public class MainWindow extends AnchorPane {
                 // find out if exit condition
                 handleExit();
                 System.out.println("EXIT");
-            } else if (isStarting && duke.isFirstTimeUser) { //set up new username
+            } else if (isStarting && Duke.isFirstTimeUser) { //set up new username
                 handleStartAndFirstTime();
                 System.out.println("start and first");
             } else if (isTryingReset) { //confirmation of reset
@@ -136,7 +144,16 @@ public class MainWindow extends AnchorPane {
                     response = response.replaceAll("✗", "\u2717");
                     showTaskContainer();
                     System.out.println("deadline setting");
-                } else if (!isQuiz || isStarting) {
+                } else if (isResult) { // On results screen
+                    response = quizSession.parseInput(0, input);
+                } else if (isReview) {
+                    response = reviewSession.parseInput(0, input);
+                } else if (isQuiz) {
+                    //Must be quizSession: checking of answers
+                    handleGuiQuiz();
+                    showContentContainer();
+                    System.out.println("quiz answer checking");
+                } else if (isStarting) {
                     //default start: finding of response
                     isStarting = false;
                     response = duke.getResponse(input);
@@ -150,18 +167,13 @@ public class MainWindow extends AnchorPane {
                         showContentContainer();
                         System.out.println("starting BUT not firsttime");
                     }
-                } else {
-                    //Must be quizSession: checking of answers
-                    handleGuiQuiz();
-                    showContentContainer();
-                    System.out.println("quiz answer checking");
                 }
 
                 if (response.contains("!@#_QUIZ")) {
                     //checks for first execution of quizCommand
                     isQuiz = true;
                     Duke.logger.log(Level.INFO, "Response: " + response);
-                    //response = getFirstQn(response);
+                    response = initQuizSession(response);
                     showContentContainer();
                     System.out.println("quiz first time");
                 }
@@ -173,7 +185,22 @@ public class MainWindow extends AnchorPane {
                     showContentContainer();
                     System.out.println("reset command");
                 }
-
+                if (response.equals("!@#_REVIEW")) {
+                    isResult = false;
+                    isReview = true;
+                    reviewSession = new ReviewSession(tempQuestionList);
+                    response = reviewSession.getQuestion(0);
+                    showContentContainer();
+                }
+                if (response.equals("!@#_BACK")) {
+                    isReview = false;
+                    isResult = false;
+                    // TODO link BackCommand to here
+                }
+                if (isReview && isNumeric(response)) {
+                    reviewSession.getQuestion(Integer.parseInt(response));
+                    showContentContainer();
+                }
 
                 //System.out.println("End->Next");
             }
@@ -214,24 +241,24 @@ public class MainWindow extends AnchorPane {
     }
 
 
-//    private String getFirstQn(String cmdMode) throws DukeException {
-//        switch (cmdMode) {
-//        case "!@#_QUIZ_1":
-//            quizCommand = new QuizCommand(QuestionType.BASIC, false);
-//            break;
-//        case "!@#_QUIZ_2":
-//            quizCommand = new QuizCommand(QuestionType.OOP, false);
-//            break;
-//        case "!@#_QUIZ_3":
-//            quizCommand = new QuizCommand(QuestionType.EXTENSIONS, false);
-//            break;
-//        case "!@#_QUIZ_4":
-//            quizCommand = new QuizCommand(QuestionType.ALL, false);
-//            break;
-//        default:
-//        }
-//        return quizCommand.getNextQuestion();
-//    }
+    private String initQuizSession(String cmdMode) throws DukeException {
+        switch (cmdMode) {
+        case "!@#_QUIZ_1":
+            quizSession = new QuizSession(QuestionType.BASIC, false);
+            break;
+        case "!@#_QUIZ_2":
+            quizSession = new QuizSession(QuestionType.OOP, false);
+            break;
+        case "!@#_QUIZ_3":
+            quizSession = new QuizSession(QuestionType.EXTENSIONS, false);
+            break;
+        case "!@#_QUIZ_4":
+            quizSession = new QuizSession(QuestionType.ALL, false);
+            break;
+        default:
+        }
+        return quizSession.getQuestion(0);
+    }
 
     private void handleExit() {
         response = duke.getResponse(input);
@@ -267,21 +294,21 @@ public class MainWindow extends AnchorPane {
         isTryingReset = false;
     }
 
-
-
     private void handleGuiQuiz() throws DukeException {
-//        quizCommand.checkAnswer(input);
-//        if (quizCommand.chosenQuestions.size() > 0) {
-//            response = quizCommand.getNextQuestion();
-//        } else {
-//            isQuiz = false;
-//            response = quizCommand.getQuizScore();
-//            if (quizCommand.scoreGrade == QuizCommand.ScoreGrade.BAD) {
-//                AvatarScreen.avatarMode = AvatarScreen.AvatarMode.POUT;
-//            } else if (quizCommand.scoreGrade == QuizCommand.ScoreGrade.OKAY) {
-//                AvatarScreen.avatarMode = AvatarScreen.AvatarMode.SAD;
-//            }
-//        }
+        quizSession.parseInput(index++, input);
+        if (index < MAX_QUESTIONS) {
+            response = quizSession.getQuestion(index);
+        } else {
+            tempQuestionList = quizSession.getQuestionList();
+            isQuiz = false;
+            isResult = true;
+            response = quizSession.getQuizResult();
+            if (quizSession.scoreGrade == QuizSession.ScoreGrade.BAD) {
+                AvatarScreen.avatarMode = AvatarScreen.AvatarMode.POUT;
+            } else if (quizSession.scoreGrade == QuizSession.ScoreGrade.OKAY) {
+                AvatarScreen.avatarMode = AvatarScreen.AvatarMode.SAD;
+            }
+        }
     }
 
     private void showContentContainer() {
@@ -300,5 +327,14 @@ public class MainWindow extends AnchorPane {
         noteContainer.getChildren().clear();
         noteContainer.getChildren().add(
                 DialogBox.getTaskDialog(response));
+    }
+
+    private static boolean isNumeric(String input) {
+        try {
+            Integer.parseInt(input);
+        } catch (NumberFormatException | NullPointerException e) {
+            return false;
+        }
+        return true;
     }
 }

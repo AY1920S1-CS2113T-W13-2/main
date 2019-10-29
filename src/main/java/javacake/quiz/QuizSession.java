@@ -73,12 +73,16 @@ public class QuizSession implements QuizManager {
                 // TODO tie BackCommand identifier to MainWindow
                 return "!@#_BACK";
             default:
-                throw new DukeException("Invalid command at this point in the program.");
+                throw new DukeException("Invalid command at this point in the program. Try \"review\" or \"back\".");
             }
         } else {
             checkAnswer(index, input);
             return null;
         }
+    }
+
+    public QuestionList getQuestionList() {
+        return questionList;
     }
 
     public static void setProfile(Profile profile) {
@@ -193,7 +197,7 @@ public class QuizSession implements QuizManager {
 //    }
 
     /**
-     * Method to check if answer is correct.
+     * Method to set user answer and check if answer is correct.
      * If it is, then update the score.
      * @param input the answer inputted by the user
      * @throws DukeException error thrown if user inputs wrong type of answer.
