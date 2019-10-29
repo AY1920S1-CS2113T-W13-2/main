@@ -1,13 +1,10 @@
 package javacake.ui;
 
 import javacake.Duke;
-import javacake.Main;
 import javacake.quiz.QuizSession;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ProgressBar;
@@ -154,16 +151,16 @@ public class TopBar extends HBox {
      * Method to set up progressBars.
      */
     public static void setUpProgressBars() {
-        TopBar.progValueA = (double) Duke.storageManager.profile.getContentMarks(0)
-                / QuizSession.MAX_QUESTIONS;
-        TopBar.progValueB = (double) Duke.storageManager.profile.getContentMarks(1)
-                / QuizSession.MAX_QUESTIONS;
-        TopBar.progValueC = (double) Duke.storageManager.profile.getContentMarks(2)
-                / QuizSession.MAX_QUESTIONS;
-        TopBar.progValueD = (double) Duke.storageManager.profile.getContentMarks(3)
-                / QuizSession.MAX_QUESTIONS;
+        TopBar.progValueA = (double) Duke.storageManager.profile.getOverallContentMarks(0)
+                / QuizSession.TotalMaxQuestions;
+        TopBar.progValueB = (double) Duke.storageManager.profile.getOverallContentMarks(1)
+                / QuizSession.TotalMaxQuestions;
+        TopBar.progValueC = (double) Duke.storageManager.profile.getOverallContentMarks(2)
+                / QuizSession.TotalMaxQuestions;
+        TopBar.progValueD = (double) Duke.storageManager.profile.getOverallContentMarks(3)
+                / QuizSession.TotalMaxQuestions;
         TopBar.progValueT = (double) Duke.storageManager.profile.getTotalProgress()
-                / (QuizSession.MAX_QUESTIONS * 4);
+                / (QuizSession.TotalMaxQuestions * 4);
     }
 
 }

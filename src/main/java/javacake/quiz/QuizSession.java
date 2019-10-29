@@ -1,33 +1,33 @@
 package javacake.quiz;
 
 import javacake.Duke;
+import javacake.Logic;
 import javacake.Parser;
 import javacake.commands.Command;
 import javacake.exceptions.DukeException;
 import javacake.storage.Profile;
-import javacake.Logic;
-import javacake.storage.Storage;
 import javacake.storage.StorageManager;
 import javacake.ui.TopBar;
 import javacake.ui.Ui;
 
-import java.io.IOException;
 import java.util.logging.Level;
 
 public class QuizSession implements QuizManager {
     private QuestionList questionList;
     public String filePath;
-    //private Question prevQuestion;
+    private QuestionType qnType;
+    private QuestionDifficulty qnDifficulty;
+    public static int TotalMaxQuestions = 5;
     private int currScore = 0;
     private static Profile profile;
     public ScoreGrade scoreGrade;
-    int totalNumOfQns = 0;
+    public int totalNumOfQns = 0;
     public static Logic logic = Logic.getInstance();
-    private QuestionType qnType;
     private boolean isQuizComplete;
     public static final int MAX_QUESTIONS = 5;
     public static final double PERCENTAGE_1 = 0.5;
     public static final double PERCENTAGE_2 = 1.0;
+    public final int levelsOfDifficulty = 3;
 
     public enum ScoreGrade {
         BAD, OKAY, GOOD
@@ -35,13 +35,14 @@ public class QuizSession implements QuizManager {
 
     /**
      * QuizCommand constructor for topic-based quiz.
-     * @param type the topic of the quiz.
+     * @param questionType the topic of the quiz.
      */
-    public QuizSession(QuestionType type, boolean isCli) throws DukeException {
-        questionList = new QuestionList(type);
-        qnType = type;
+    public QuizSession(QuestionType questionType, QuestionDifficulty questionDifficulty, boolean isCli)
+            throws DukeException {
+        questionList = new QuestionList(questionType);
+        qnType = questionType;
+        qnDifficulty = questionDifficulty;
         if (!isCli) {
-            this.filePath = logic.getFullFilePath();
             runGui();
         }
         isQuizComplete = false;
@@ -92,9 +93,9 @@ public class QuizSession implements QuizManager {
 
     /**
      * Executes the quiz.
-     * @param logic how far the program is currently in in the table of contents.
+     * @param logic TaskList containing current tasks
      * @param ui the UI responsible for inputs and outputs of the program.
-     * @param storageManager Storage to write updated data.
+     * @param storageManager storage container.
      * @return execution of next command from input at results screen.
      * @throws DukeException Error thrown when there is a problem with score calculation.
      */
@@ -138,51 +139,80 @@ public class QuizSession implements QuizManager {
     }
 
     /**
-     * Method to overwrite the old score of user,
-     * if it's less than the current score.
-     * @param score new score of user
+     * Method to overwrite the old totalScore of user,
+     * if it's less than the current totalScore.
+     * @param totalScore new totalScore of user
      * @param profile profile object of user
      * @throws DukeException error if question type is undefined
      */
-    public void overwriteOldScore(int score, Profile profile) throws DukeException {
-        int topicIdx;
+    public void overwriteOldScore(int totalScore, Profile profile) throws DukeException {
+        int individualTopicIdx;
+        int overallTopicIdx;
         switch (qnType) {
         case BASIC:
-            topicIdx = 0;
+            overallTopicIdx = 0;
             break;
         case OOP:
-            topicIdx = 1;
+            overallTopicIdx = 1;
             break;
         case EXTENSIONS:
-            topicIdx = 2;
+            overallTopicIdx = 2;
             break;
         case ALL:
-            topicIdx = 3;
+            overallTopicIdx = 3;
             break;
         default:
             throw new DukeException("Topic Idx out of bounds!");
         }
-        if (score > profile.getContentMarks(topicIdx)) {
-            profile.setMarks(topicIdx, score);
+
+        switch (qnDifficulty) {
+        case EASY:
+            individualTopicIdx = overallTopicIdx * levelsOfDifficulty;
+            break;
+        case MEDIUM:
+            individualTopicIdx = overallTopicIdx * levelsOfDifficulty + 1;
+            break;
+        case HARD:
+            individualTopicIdx = overallTopicIdx * levelsOfDifficulty + 2;
+            break;
+        default:
+            throw new DukeException("Topic Idx out of bounds!");
+        }
+
+        if (totalScore > profile.getIndividualContentMarks(individualTopicIdx)) {
+            profile.setIndividualMarks(individualTopicIdx,totalScore);
+            if (individualTopicIdx % levelsOfDifficulty == 0) {
+                totalScore += profile.getIndividualContentMarks(individualTopicIdx + 1);
+                totalScore += profile.getIndividualContentMarks(individualTopicIdx + 2);
+            } else if (individualTopicIdx % levelsOfDifficulty == 1) {
+                totalScore += profile.getIndividualContentMarks(individualTopicIdx + 1);
+                totalScore += profile.getIndividualContentMarks(individualTopicIdx - 1);
+            } else if (individualTopicIdx % levelsOfDifficulty == 2) {
+                totalScore += profile.getIndividualContentMarks(individualTopicIdx - 2);
+                totalScore += profile.getIndividualContentMarks(individualTopicIdx - 1);
+            }
+
+            profile.setOverallMarks(overallTopicIdx, totalScore);
+
             if (!Duke.isCliMode()) {
-                switch (topicIdx) {
+                switch (overallTopicIdx) {
                 case 0:
-                    Duke.logger.log(Level.INFO, score + " YEET");
-                    TopBar.progValueA = (double) score / MAX_QUESTIONS;
+                    Duke.logger.log(Level.INFO, totalScore + " YEET");
+                    TopBar.progValueA = (double) totalScore / TotalMaxQuestions;
                     break;
                 case 1:
-                    TopBar.progValueB = (double) score / MAX_QUESTIONS;
+                    TopBar.progValueB = (double) totalScore / TotalMaxQuestions;
                     break;
                 case 2:
-                    TopBar.progValueC = (double) score / MAX_QUESTIONS;
+                    TopBar.progValueC = (double) totalScore / TotalMaxQuestions;
                     break;
                 case 3:
-                    TopBar.progValueD = (double) score / MAX_QUESTIONS;
+                    TopBar.progValueD = (double) totalScore / TotalMaxQuestions;
                     break;
 
                 default:
                 }
-                TopBar.progValueT = (double) profile.getTotalProgress() / (MAX_QUESTIONS * 4);
+                TopBar.progValueT = (double) profile.getTotalProgress() / (TotalMaxQuestions * 4);
             }
         }
     }

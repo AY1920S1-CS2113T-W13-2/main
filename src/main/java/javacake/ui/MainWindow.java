@@ -3,6 +3,7 @@ package javacake.ui;
 import javacake.Duke;
 import javacake.commands.EditNoteCommand;
 import javacake.exceptions.DukeException;
+import javacake.quiz.QuestionDifficulty;
 import javacake.quiz.QuestionList;
 import javacake.quiz.QuestionType;
 import javacake.quiz.QuizSession;
@@ -232,21 +233,28 @@ public class MainWindow extends AnchorPane {
 
 
     private String initQuizSession(String cmdMode) throws DukeException {
-        switch (cmdMode) {
-        case "!@#_QUIZ_1":
-            quizSession = new QuizSession(QuestionType.BASIC, false);
-            break;
-        case "!@#_QUIZ_2":
-            quizSession = new QuizSession(QuestionType.OOP, false);
-            break;
-        case "!@#_QUIZ_3":
-            quizSession = new QuizSession(QuestionType.EXTENSIONS, false);
-            break;
-        case "!@#_QUIZ_4":
-            quizSession = new QuizSession(QuestionType.ALL, false);
-            break;
-        default:
+        QuestionType qnType;
+        QuestionDifficulty qnDifficulty;
+
+        if (cmdMode.contains("!@#_QUIZ_1")) {
+            qnType = QuestionType.BASIC;
+        } else if (cmdMode.contains("!@#_QUIZ_2")) {
+            qnType = QuestionType.OOP;
+        } else if (cmdMode.contains("!@#_QUIZ_3")) {
+            qnType = QuestionType.EXTENSIONS;
+        } else {
+            qnType = QuestionType.ALL;
         }
+
+        if (cmdMode.contains("EZ")) {
+            qnDifficulty = QuestionDifficulty.EASY;
+        } else if (cmdMode.contains("MED")) {
+            qnDifficulty = QuestionDifficulty.MEDIUM;
+        } else {
+            qnDifficulty = QuestionDifficulty.HARD;
+        }
+        quizSession = new QuizSession(qnType, qnDifficulty, false);
+
         return quizSession.getQuestion(0);
     }
 
@@ -405,6 +413,7 @@ public class MainWindow extends AnchorPane {
     private void handleBackCommand() {
         isResult = false;
         isReview = false;
+        index = 0;
         response = duke.getResponse("back");
         showContentContainer();
     }

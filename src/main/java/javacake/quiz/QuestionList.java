@@ -2,24 +2,34 @@ package javacake.quiz;
 
 import javacake.exceptions.DukeException;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Random;
 
+import static javacake.quiz.QuizSession.logic;
+
 public class QuestionList {
+    private ArrayList<Question> tempList;
     private ArrayList<Question> chosenQuestions;
-    private int totalNumOfBasicQns = 15;
-    private int totalNumOfOopQns = 5;
-    private int totalNumOfUsefulExtensionQns = 5;
     /** The maximum number of questions in one session of a quiz. */
     public static final int MAX_QUESTIONS = 5;
     private QuestionType questionType;
+    private String filePath;
+    private int totalNumOfQns = 0;
 
+    /**
+     * Initialize a list of randomly chosen questions.
+     * @param type the type of question to choose.
+     * @throws DukeException when there is an error loading files.
+     */
     public QuestionList(QuestionType type) throws DukeException {
         questionType = type;
+        this.filePath = logic.getFullFilePath();
+        totalNumOfQns = logic.getNumOfFiles();
+        tempList = new ArrayList<>();
+        loadQuestions();
         chosenQuestions = pickQuestions();
     }
 
@@ -42,117 +52,34 @@ public class QuestionList {
     }
 
     /**
-     * Updates the current number of basic questions in the hardcoded file path and returns all the questions stored.
-     * @return ArrayList of all the basic questions available.
+     * Method to get all questions in the given directory.
      */
-    private ArrayList<Question> initBasicList() throws DukeException {
-        ArrayList<Question> basicQuestionList = new ArrayList<>();
-        for (int i = 1; i <= totalNumOfBasicQns; i++) {
+    public void loadQuestions() throws DukeException {
+        for (int i = 1; i <= totalNumOfQns; i++) {
             try {
-                String fileContentPath = "/content/MainList/1. Java Basics/4. Quiz/Qn" + i + ".txt";
-                InputStream in = getClass().getResourceAsStream(fileContentPath);
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
-                String currentLine;
-                String qns = "";
-
-                while ((currentLine = bufferedReader.readLine()) != null) {
-                    qns = qns + currentLine + "\n";
+                String fileContentPath = filePath + "/Qn" + i + ".txt";
+                InputStream inputStream = ClassLoader.getSystemClassLoader().getResourceAsStream(fileContentPath);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                StringBuilder stringBuilder = new StringBuilder();
+                String sentenceRead;
+                while ((sentenceRead = reader.readLine()) != null) {
+                    stringBuilder.append(sentenceRead).append("\n");
                 }
-                qns = qns.substring(0,qns.length() - 1); // to remove the last appended new line character
-                String[] questions = qns.split("\\|\\s*");
-                basicQuestionList.add(new Question(questions[0], questions[1]));
-
-            } catch (IOException e) {
-                throw new DukeException("File not found!");
+                reader.close();
+                String[] questions = stringBuilder.toString().substring(0,stringBuilder.length() - 1).split("\\|\\s*");
+                this.tempList.add(new Question(questions[0], questions[1]));
+            } catch (Exception e) {
+                throw new DukeException("Error in loading file :(");
             }
         }
-        return basicQuestionList;
-    }
-
-    /**
-     * Updates the current number of oop questions in the hardcoded file path and returns all the questions stored.
-     * @return ArrayList of all the oop questions available.
-     */
-    private ArrayList<Question> initOopList() throws DukeException {
-        ArrayList<Question> oopQuestionList = new ArrayList<>();
-        for (int i = 1; i <= totalNumOfOopQns; i++) {
-            try {
-                String fileContentPath = "/content/MainList/2. Object-Oriented Programming/5. Quiz/Qn" + i + ".txt";
-                InputStream in = getClass().getResourceAsStream(fileContentPath);
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
-                String currentline;
-                String qns = "";
-
-                while ((currentline = bufferedReader.readLine()) != null) {
-                    qns = qns + currentline + "\n";
-                }
-                qns = qns.substring(0,qns.length() - 1); // to remove the last appended new line character
-                String[] questions = qns.split("\\|\\s*");
-                oopQuestionList.add(new Question(questions[0], questions[1]));
-
-            } catch (IOException e) {
-                throw new DukeException("File not found!");
-            }
-        }
-        return oopQuestionList;
-    }
-
-    /**
-     * Updates the current number of extension questions in the hardcoded file path
-     * and returns all the questions stored.
-     * @return ArrayList of all the extension questions available.
-     */
-    private ArrayList<Question> initExtensionList() throws DukeException {
-        ArrayList<Question> extensionQuestionList = new ArrayList<>();
-        for (int i = 1; i <= totalNumOfUsefulExtensionQns; i++) {
-            try {
-                String fileContentPath = "/content/MainList/3. Extensions/4. Quiz/Qn" + i + ".txt";
-                InputStream in = getClass().getResourceAsStream(fileContentPath);
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
-                String currentLine; 
-                String qns = "";
-
-                while ((currentLine = bufferedReader.readLine()) != null) {
-                    qns = qns + currentLine + "\n";
-                }
-                qns = qns.substring(0,qns.length() - 1); // to remove the last appended new line character
-                String[] questions = qns.split("\\|\\s*");
-                extensionQuestionList.add(new Question(questions[0], questions[1]));
-
-            } catch (IOException e) {
-                throw new DukeException("File not found!");
-            }
-        }
-        return extensionQuestionList;
+        assert tempList.size() > 0;
     }
 
     /**
      * Randomly selects MAX_QUESTIONS number of questions of the specified topic from the list of all questions.
      * @return ArrayList of Question of specified topic of size MAX_QUESTIONS.
      */
-    public ArrayList<Question> pickQuestions() throws DukeException {
-        ArrayList<Question> tempList1 = new ArrayList<>();
-        switch (questionType) {
-        case BASIC:
-            assert (initBasicList().size() >= MAX_QUESTIONS);
-            tempList1.addAll(initBasicList());
-            break;
-        case OOP:
-            assert (initOopList().size() >= MAX_QUESTIONS);
-            tempList1.addAll(initOopList());
-            break;
-        case EXTENSIONS:
-            assert (initExtensionList().size() >= MAX_QUESTIONS);
-            tempList1.addAll(initExtensionList());
-            break;
-        default:
-            tempList1.addAll(initBasicList());
-            tempList1.addAll(initOopList());
-            tempList1.addAll(initExtensionList());
-            assert (tempList1.size() >= MAX_QUESTIONS);
-            break;
-        }
-
+    public ArrayList<Question> pickQuestions() {
         Random rand = new Random();
         ArrayList<Integer> chosenNumbers = new ArrayList<>();
         ArrayList<Question> tempList2 = new ArrayList<>();
@@ -160,10 +87,10 @@ public class QuestionList {
         for (int i = 0; i < MAX_QUESTIONS; i++) {
             int randomNum;
             do {
-                randomNum = rand.nextInt(tempList1.size());
+                randomNum = rand.nextInt(tempList.size());
             } while (chosenNumbers.contains(randomNum)); // prevents repeat questions
             chosenNumbers.add(randomNum);
-            tempList2.add(tempList1.get(randomNum));
+            tempList2.add(tempList.get(randomNum));
         }
         assert (tempList2.size() == MAX_QUESTIONS);
         return tempList2;
