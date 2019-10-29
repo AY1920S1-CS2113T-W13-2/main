@@ -1,8 +1,14 @@
 package javacake.ui;
 
+import javacake.Logic;
+import javacake.commands.ListNoteCommand;
 import javacake.quiz.QuizSession;
+import javacake.commands.ReminderCommand;
 import javacake.exceptions.DukeException;
 import javacake.quiz.Question;
+import javacake.storage.Profile;
+import javacake.storage.Storage;
+import javacake.storage.StorageManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -58,6 +64,14 @@ public class Ui {
         return strA.toString();
     }
 
+    public static String showDeadlineReminder(StorageManager storageManager) {
+        return new ReminderCommand().execute(Logic.getInstance(), new Ui(), storageManager);
+    }
+
+    public static String showNoteList(StorageManager storageManager) throws DukeException {
+        return new ListNoteCommand().execute(Logic.getInstance(), new Ui(), storageManager);
+    }
+
     /**
      * Prints a new border to separate messages by Ui.
      */
@@ -69,7 +83,10 @@ public class Ui {
      * Prints help message to assist user.
      */
     public static String helpMessage() {
-        return "\nType 'list' to view main topics\n" + "Type 'exit' to rage quit\n";
+        return "\nType 'list' to view main topics.\n"
+                + "Type 'overview' to view all content.\n"
+                + "Type 'help' to view all commands available.\n"
+                + "Type 'exit' to rage quit.\n";
     }
 
     /**

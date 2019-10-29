@@ -30,7 +30,9 @@ public class DialogBox extends HBox {
     @FXML
     private ImageView displayPicture;
 
-    private boolean isSet = false;
+    public static boolean isSet = false;
+    public static boolean isScrollingText = true;
+
     private String displayText = "";
     private char[] charList;
     private int charCount = 0;
@@ -54,10 +56,11 @@ public class DialogBox extends HBox {
         }
         this.setPrefWidth(675);
         setStyleLoop();
-        setScrollText();
+
         displayText = text;
         charList = displayText.toCharArray();
         dialog.setText(displayText.substring(0, 1));
+        setScrollText();
         displayPicture.setImage(img);
     }
 
@@ -74,18 +77,25 @@ public class DialogBox extends HBox {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        this.setPrefWidth(282);
+        dialog.setPrefWidth(280);
         setStyleLoop();
-        setScrollText();
-        displayText = deadlineTextBase + text;
+
+        displayText = text;
         charList = displayText.toCharArray();
+        setScrollText();
         dialog.setText(displayText.substring(0, 1));
     }
 
     private void setScrollText() {
         textTimeline = new Timeline(new KeyFrame(Duration.millis(10), ev -> {
-            if (charCount != charList.length) {
-                charCount++;
-                dialog.setText(displayText.substring(0, charCount));
+            if (isScrollingText) {
+                if (charCount != charList.length) {
+                    charCount++;
+                    dialog.setText(displayText.substring(0, charCount));
+                }
+            } else {
+                dialog.setText(displayText);
             }
         }));
         textTimeline.setCycleCount(Animation.INDEFINITE);
@@ -111,24 +121,25 @@ public class DialogBox extends HBox {
             if (charCount == charList.length) {
                 textTimeline.stop();
             }
-            if (MainWindow.isLightMode) {
-                if (isSet) {
-                    this.setStyle("-fx-background-color: #EE8EC7;"
-                            + " -fx-background-radius: 20;"
-                            + " -fx-border-color: white;"
-                            + " -fx-border-radius: 20;");
-                    dialog.setStyle("-fx-text-fill: white");
-                    isSet = false;
-                }
-            } else {
-                if (!isSet) {
-                    this.setStyle("-fx-background-color: #CCC;"
-                            + " -fx-background-radius: 20;"
-                            + " -fx-border-color: grey;"
-                            + " -fx-border-radius: 20;");
-                    dialog.setStyle("-fx-text-fill: black");
-                    isSet = true;
-                }
+            if (MainWindow.isLightMode) { //change to light mode
+                //if (isSet) {
+                this.setStyle("-fx-background-color: #EE8EC7;"
+                        + " -fx-background-radius: 20;"
+                        + " -fx-border-color: white;"
+                        + " -fx-border-radius: 20;");
+                dialog.setStyle("-fx-text-fill: white");
+                isSet = false;
+                //}
+            }
+            if (!MainWindow.isLightMode) {
+                //if (!isSet) { //change to dark mode
+                this.setStyle("-fx-background-color: #CCC;"
+                        + " -fx-background-radius: 20;"
+                        + " -fx-border-color: grey;"
+                        + " -fx-border-radius: 20;");
+                dialog.setStyle("-fx-text-fill: black");
+                isSet = false;
+                //}
             }
 
         }));
@@ -176,4 +187,5 @@ public class DialogBox extends HBox {
     public static DialogBox getTaskDialog(String text) {
         return new DialogBox(text);
     }
+
 }

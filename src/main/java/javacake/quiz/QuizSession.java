@@ -5,8 +5,9 @@ import javacake.Parser;
 import javacake.commands.Command;
 import javacake.exceptions.DukeException;
 import javacake.storage.Profile;
-import javacake.ProgressStack;
+import javacake.Logic;
 import javacake.storage.Storage;
+import javacake.storage.StorageManager;
 import javacake.ui.TopBar;
 import javacake.ui.Ui;
 
@@ -21,7 +22,7 @@ public class QuizSession implements QuizManager {
     private static Profile profile;
     public ScoreGrade scoreGrade;
     int totalNumOfQns = 0;
-    public static ProgressStack progressStack;
+    public static Logic logic = Logic.getInstance();
     private QuestionType qnType;
     private boolean isQuizComplete;
     public static final int MAX_QUESTIONS = 5;
@@ -40,7 +41,7 @@ public class QuizSession implements QuizManager {
         questionList = new QuestionList(type);
         qnType = type;
         if (!isCli) {
-            this.filePath = progressStack.getFullFilePath();
+            this.filePath = logic.getFullFilePath();
             runGui();
         }
         isQuizComplete = false;
@@ -91,19 +92,17 @@ public class QuizSession implements QuizManager {
 
     /**
      * Executes the quiz.
-     * @param progressStack how far the program is currently in in the table of contents.
+     * @param logic how far the program is currently in in the table of contents.
      * @param ui the UI responsible for inputs and outputs of the program.
-     * @param storage Storage to write updated data.
-     * @param profile Profile of the user.
+     * @param storageManager Storage to write updated data.
+     * @return execution of next command from input at results screen.
      * @throws DukeException Error thrown when there is a problem with score calculation.
-     * @return
      */
-    public String execute(ProgressStack progressStack, Ui ui, Storage storage, Profile profile)
-            throws DukeException, IOException {
-        progressStack.insertQueries();
-        assert !progressStack.containsDirectory();
-        this.filePath = progressStack.getFullFilePath();
-        totalNumOfQns = progressStack.getNumOfFiles();
+    public String execute(Logic logic, Ui ui, StorageManager storageManager) throws DukeException {
+        logic.insertQueries();
+        assert !logic.containsDirectory();
+        this.filePath = logic.getFullFilePath();
+        totalNumOfQns = logic.getNumOfFiles();
         for (int i = 0; i < MAX_QUESTIONS; i++) {
             Question question = questionList.getQuestionList().get(i);
             ui.displayQuiz(question.getQuestion(), i + 1, MAX_QUESTIONS);
@@ -124,10 +123,10 @@ public class QuizSession implements QuizManager {
         ui.displayResults(currScore, MAX_QUESTIONS);
         String nextCommand = ui.readCommand();
         if (nextCommand.equals("review")) {
-            return new ReviewSession(questionList).execute(progressStack, ui, storage, profile);
+            return new ReviewSession(questionList).execute(logic, ui, storageManager);
         } else {
             Command newCommand = Parser.parse(nextCommand);
-            return newCommand.execute(progressStack, ui, storage, profile);
+            return newCommand.execute(logic, ui, storageManager);
         }
     }
 
@@ -135,7 +134,7 @@ public class QuizSession implements QuizManager {
      * Method to execute but for GUI.
      */
     public void runGui() throws DukeException {
-        totalNumOfQns = progressStack.getNumOfFiles();
+        totalNumOfQns = logic.getNumOfFiles();
     }
 
     /**
@@ -157,9 +156,11 @@ public class QuizSession implements QuizManager {
         case EXTENSIONS:
             topicIdx = 2;
             break;
-        default:
+        case ALL:
             topicIdx = 3;
             break;
+        default:
+            throw new DukeException("Topic Idx out of bounds!");
         }
         if (score > profile.getContentMarks(topicIdx)) {
             profile.setMarks(topicIdx, score);
@@ -185,16 +186,6 @@ public class QuizSession implements QuizManager {
             }
         }
     }
-
-    /**
-     * Method to get the next Question.
-     * @return the string containing the next question
-     */
-//    public String getNextQuestion() {
-//        prevQuestion = chosenQuestions.get(chosenQuestions.size() - 1);
-//        chosenQuestions.remove(chosenQuestions.size() - 1);
-//        return prevQuestion.getQuestion();
-//    }
 
     /**
      * Method to set user answer and check if answer is correct.
@@ -241,7 +232,7 @@ public class QuizSession implements QuizManager {
             scoreGrade = ScoreGrade.GOOD;
         }
 
-        stringBuilder.append("Type \"review\" to review your answers.");
+        stringBuilder.append("\nType \"review\" to review your answers.");
         stringBuilder.append("\nType \"back\" to go back to the table of contents.");
 
         overwriteOldScore(currScore, profile);

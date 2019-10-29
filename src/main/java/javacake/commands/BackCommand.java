@@ -1,8 +1,9 @@
 package javacake.commands;
 
+import javacake.Logic;
 import javacake.exceptions.DukeException;
-import javacake.ProgressStack;
 import javacake.storage.Profile;
+import javacake.storage.StorageManager;
 import javacake.ui.Ui;
 import javacake.storage.Storage;
 
@@ -14,21 +15,20 @@ public class BackCommand extends Command {
 
     /**
      * Execute going back to previous index.
-     * @param progressStack tracks current location in program
+     * @param logic TaskList containing current tasks
      * @param ui the Ui responsible for outputting messages
-     * @param storage Storage needed to write the updated data
-     * @param profile Profile of the user
+     * @param storageManager storage container
      * @throws DukeException Error thrown when unable to close file reader
      */
-    public String execute(ProgressStack progressStack, Ui ui, Storage storage, Profile profile) throws DukeException {
+    public String execute(Logic logic, Ui ui, StorageManager storageManager) throws DukeException {
 
-        progressStack.backToPreviousPath();
-        progressStack.insertQueries();
-        if (progressStack.containsDirectory()) {
-            return (progressStack.displayDirectories());
+        logic.backToPreviousPath();
+        logic.insertQueries();
+        if (logic.containsDirectory()) {
+            return (logic.displayDirectories());
         } else {
-            progressStack.updateFilePath(progressStack.gotoFilePath(0));
-            return (progressStack.readQuery());
+            logic.updateFilePath(logic.gotoFilePath(0));
+            return (logic.readQuery());
         }
     }
 }

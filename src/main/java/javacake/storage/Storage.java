@@ -2,7 +2,9 @@ package javacake.storage;
 
 import javacake.Duke;
 import javacake.exceptions.DukeException;
+import javacake.notes.Note;
 import javacake.tasks.Task;
+import org.apache.commons.io.FileUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,11 +18,14 @@ import java.util.logging.Level;
 
 public class Storage {
     private int stringBuffer = 7;
-    private static ArrayList<Task> internalTaskData = new ArrayList<>();
+    private static ArrayList<Task> tempTaskData = new ArrayList<>();
+    private static ArrayList<Note> noteCollection = new ArrayList<>();
+    public static TaskList currentTaskData;
 
+    private static String defaultFilePath = "data";
     private String filepath;
     private TaskType dataType;
-    public TaskList tasks;
+
 
     public enum TaskType {
         TODO, DEADLINE, TODO_DAILY, TODO_WEEKLY, TODO_MONTHLY
@@ -30,27 +35,38 @@ public class Storage {
      * Constructor for storage.
      */
     public Storage() throws DukeException {
-        this.tasks = new TaskList();
-        //Initialise new deadline file
-        try {
-            File tasksFile = new File("data/tasks/deadline.txt");
-            File notesFile = new File("data/notes/");
-            filepath = tasksFile.getPath();
-            Duke.logger.log(Level.INFO,"Filepath: " + filepath);
-            generateFolder(notesFile);
+        this(defaultFilePath);
+    }
 
+    /**
+     * Initialises the 'data' based on previous data
+     * from filepath.
+     * @param altPath The storage path of the saved data
+     * @throws DukeException Exception when file is not found
+     */
+    public Storage(String altPath) throws DukeException {
+        this.currentTaskData = new TaskList();
+        defaultFilePath = altPath;
+        //Initialise new deadline file
+        filepath = defaultFilePath + "/tasks/deadline.txt";
+        File tasksFile = new File(filepath);
+        //Initialise new notes directory
+        File notesFile = new File(defaultFilePath + "/notes/");
+        generateFolder(notesFile);
+        Duke.logger.log(Level.INFO,"Filepath: " + filepath);
+        try {
             if (!tasksFile.getParentFile().getParentFile().exists()) {
                 tasksFile.getParentFile().getParentFile().mkdir();
                 tasksFile.getParentFile().mkdir();
                 tasksFile.createNewFile();
-                System.out.println("A" + tasksFile.getParentFile().getParentFile().getPath());
+                //System.out.println("A" + tasksFile.getParentFile().getParentFile().getPath());
             } else if (!tasksFile.getParentFile().exists()) {
                 tasksFile.getParentFile().mkdir();
                 tasksFile.createNewFile();
-                System.out.println("B" + tasksFile.getParentFile().getPath());
+                //System.out.println("B" + tasksFile.getParentFile().getPath());
             } else if (!tasksFile.exists()) {
                 tasksFile.createNewFile();
-                System.out.println("C" + tasksFile.getPath());
+                //System.out.println("C" + tasksFile.getPath());
             } else {
                 Duke.logger.log(Level.INFO, filepath + " is found!");
             }
@@ -88,9 +104,13 @@ public class Storage {
                     count++;
                 }
                 if (!isChecked) {
-                    TaskList.runDeadline(internalTaskData, finalOutput.toString(), TaskList.TaskState.NOT_DONE);
+                    TaskList.runDeadline(tempTaskData, finalOutput.toString(), TaskList.TaskState.NOT_DONE);
+                    this.currentTaskData.add(tempTaskData.get(0));
+                    tempTaskData.clear();
                 } else {
-                    TaskList.runDeadline(internalTaskData, finalOutput.toString(), TaskList.TaskState.DONE);
+                    TaskList.runDeadline(tempTaskData, finalOutput.toString(), TaskList.TaskState.DONE);
+                    this.currentTaskData.add(tempTaskData.get(0));
+                    tempTaskData.clear();
                 }
             }
             reader.close();
@@ -99,8 +119,19 @@ public class Storage {
             throw new DukeException("Failed to create storage.");
         }
 
-        //Initialise new notes directory
+    }
 
+    /**
+     * Method to hard reset profile.
+     */
+    public static void resetStorage() throws DukeException {
+        try {
+            FileUtils.deleteDirectory(new File(defaultFilePath));
+            tempTaskData.clear();
+            currentTaskData.getData().clear();
+        } catch (IOException e) {
+            throw new DukeException("Unable to reset Storage");
+        }
     }
 
     /**
@@ -108,21 +139,13 @@ public class Storage {
      * @param sampleFile File that is auto-generated when program starts.
      * @throws DukeException If file does not exist.
      */
-    private static void generateFolder(File sampleFile) {
+    public static void generateFolder(File sampleFile) {
         if (!sampleFile.getParentFile().exists()) {
             sampleFile.getParentFile().mkdirs();
             sampleFile.mkdirs();
+        } else if (!sampleFile.exists()) {
+            sampleFile.mkdirs();
         }
-    }
-
-    /**
-     * Initialises the 'data' based on previous data
-     * from filepath.
-     * @param filepath The storage path of the saved data
-     * @throws DukeException Exception when file is not found
-     */
-    public Storage(String filepath) throws DukeException {
-        this();
     }
 
     /**
@@ -130,7 +153,7 @@ public class Storage {
      * @return ArrayList of Tasks that has been initialised
      */
     public ArrayList<Task> load() {
-        return internalTaskData;
+        return tempTaskData;
     }
 
     /**
@@ -142,7 +165,7 @@ public class Storage {
     public void write(ArrayList<Task> tasks) throws DukeException {
         try {
             PrintWriter out = new PrintWriter(filepath);
-            for (Task task : internalTaskData) {
+            for (Task task : tempTaskData) {
                 out.println(doInternalWrite(task));
             }
             for (Task task : tasks) {
@@ -190,6 +213,10 @@ public class Storage {
      * @return size of internal data
      */
     public static int getInternalDataSize() {
-        return internalTaskData.size();
+        return currentTaskData.size();
+    }
+
+    public ArrayList<Task> getData() {
+        return this.currentTaskData.getData();
     }
 }

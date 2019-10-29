@@ -1,29 +1,23 @@
 package javacake;
 
-
 import javacake.commands.AddCommand;
+import javacake.commands.ChangeColorCommand;
 import javacake.commands.BackCommand;
 import javacake.commands.Command;
 import javacake.commands.CreateNoteCommand;
+import javacake.commands.DeleteNoteCommand;
 import javacake.commands.EditNoteCommand;
 import javacake.commands.ExitCommand;
 import javacake.commands.GoToCommand;
 import javacake.commands.HelpCommand;
 import javacake.commands.ListCommand;
-import javacake.commands.MegaListCommand;
+import javacake.commands.ListNoteCommand;
+import javacake.commands.OverviewCommand;
+import javacake.commands.ReminderCommand;
 import javacake.commands.ResetCommand;
 import javacake.commands.ScoreCommand;
 import javacake.exceptions.DukeException;
-import javacake.tasks.Task;
-import javacake.tasks.ToDo;
-import javacake.tasks.Deadline;
-import javacake.tasks.RecurringTask;
-import com.joestelmach.natty.DateGroup;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import javacake.ui.MainWindow;
 
 public class Parser {
 
@@ -57,13 +51,22 @@ public class Parser {
             }
             return new GoToCommand(inputCommand.substring(5));
         } else if (input.equals("overview")) {
-            return new MegaListCommand();
+            return new OverviewCommand();
         } else if (input.equals("createnote")) {
             return new CreateNoteCommand(inputCommand);
         } else if (input.equals("editnote")) {
             return new EditNoteCommand(inputCommand);
+        } else if (input.equals("listnote")) {
+            return new ListNoteCommand();
+        } else if (input.equals("deletenote")) {
+            return new DeleteNoteCommand(inputCommand);
         } else if (input.equals("deadline")) {
             return new AddCommand(inputCommand);
+        } else if (input.equals("reminder")) {
+            return new ReminderCommand();
+        } else if (input.equals("change")) {
+            MainWindow.isChanged = true;
+            return new ChangeColorCommand();
         } else {
             throw new DukeException("OOPS!!! I'm sorry, but I don't know what that means.");
         }
@@ -76,8 +79,9 @@ public class Parser {
      * 2) if user accidentally types extra or less letter, eg. treee or tre instead of tree.
      */
     private static void helper(String input) throws DukeException {
-        String[] commands = {"exit", "list", "back", "help", "score", "reset",
-                             "goto", "overview", "deadline", "editnote", "createnote"};
+        String[] commands = {"exit", "list", "back", "help", "score", "reset", "goto",
+            "overview", "deadline", "editnote", "createnote", "listnote", "deletenote"};
+
         for (int i = 0; i < commands.length; i++) {
             boolean isTypo = false;
             String command = commands[i];

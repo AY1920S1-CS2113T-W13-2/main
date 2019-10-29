@@ -1,12 +1,9 @@
 package javacake.commands;
 
+import javacake.Logic;
 import javacake.exceptions.DukeException;
-import javacake.ProgressStack;
-import javacake.storage.Profile;
+import javacake.storage.StorageManager;
 import javacake.ui.Ui;
-import javacake.storage.Storage;
-
-import java.io.IOException;
 
 public abstract class Command {
     protected CmdType type;
@@ -17,11 +14,11 @@ public abstract class Command {
      */
     public enum CmdType {
         EXIT, LIST, FIND, DONE, DELETE, TODO, DEADLINE, REMIND, VIEWSCH,
-        EDIT, BACK, GOTO, HELP, TREE, CREATENOTE, EDITNOTE
+        EDIT, BACK, GOTO, HELP, TREE, CREATENOTE, EDITNOTE, DELETENOTE
     }
 
-    public abstract String execute(ProgressStack progressStack, Ui ui, Storage storage, Profile profile)
-            throws DukeException, IOException;
+    public abstract String execute(Logic logic, Ui ui, StorageManager storageManager)
+            throws DukeException;
 
     /**
      * Method to get the type of command.

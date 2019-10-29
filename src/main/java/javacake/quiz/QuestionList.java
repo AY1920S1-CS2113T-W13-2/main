@@ -28,7 +28,7 @@ public class QuestionList {
     }
 
     public String getQuestion(int index) {
-        return index + "/" + MAX_QUESTIONS + "\n" + chosenQuestions.get(index).getQuestion();
+        return index + 1 + "/" + MAX_QUESTIONS + "\n" + chosenQuestions.get(index).getQuestion();
     }
 
     public String getAnswers(int index) {
@@ -49,7 +49,7 @@ public class QuestionList {
         ArrayList<Question> basicQuestionList = new ArrayList<>();
         for (int i = 1; i <= totalNumOfBasicQns; i++) {
             try {
-                String fileContentPath = "/src/main/resources/content/MainList/1. Java Basics/4. Quiz/Qn" + i + ".txt";
+                String fileContentPath = "/content/MainList/1. Java Basics/4. Quiz/Qn" + i + ".txt";
                 InputStream in = getClass().getResourceAsStream(fileContentPath);
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
                 String currentLine;
@@ -77,7 +77,7 @@ public class QuestionList {
         ArrayList<Question> oopQuestionList = new ArrayList<>();
         for (int i = 1; i <= totalNumOfOopQns; i++) {
             try {
-                String fileContentPath = "/src/main/resources/content/MainList/2. Object-Oriented Programming/5. Quiz/Qn" + i + ".txt";
+                String fileContentPath = "/content/MainList/2. Object-Oriented Programming/5. Quiz/Qn" + i + ".txt";
                 InputStream in = getClass().getResourceAsStream(fileContentPath);
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
                 String currentline;
@@ -106,7 +106,7 @@ public class QuestionList {
         ArrayList<Question> extensionQuestionList = new ArrayList<>();
         for (int i = 1; i <= totalNumOfUsefulExtensionQns; i++) {
             try {
-                String fileContentPath = "src/main/resources/content/MainList/3. Extensions/4. Quiz/Qn" + i + ".txt";
+                String fileContentPath = "/content/MainList/3. Extensions/4. Quiz/Qn" + i + ".txt";
                 InputStream in = getClass().getResourceAsStream(fileContentPath);
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
                 String currentLine; 

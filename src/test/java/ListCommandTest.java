@@ -1,5 +1,6 @@
 import javacake.exceptions.DukeException;
-import javacake.ProgressStack;
+import javacake.Logic;
+import javacake.storage.StorageManager;
 import javacake.ui.Ui;
 import javacake.storage.Profile;
 import javacake.storage.Storage;
@@ -29,12 +30,11 @@ public class ListCommandTest {
         String expectedOutput = sb.toString();
 
         try {
-            ProgressStack ps = new ProgressStack();
+            Logic logic = Logic.getInstance();
             Ui ui = new Ui();
-            Profile p = new Profile();
-            Storage s = new Storage();
+            StorageManager sm = new StorageManager();
             ListCommand lc = new ListCommand();
-            String actualOutput = lc.execute(ps, ui, s, p);
+            String actualOutput = lc.execute(logic, ui, sm);
             assertEquals(expectedOutput.trim(), actualOutput.trim());
         } catch (DukeException e) {
             e.printStackTrace();

@@ -3,8 +3,9 @@ package javacake.quiz;
 import javacake.commands.BackCommand;
 import javacake.exceptions.DukeException;
 import javacake.storage.Profile;
-import javacake.ProgressStack;
+import javacake.Logic;
 import javacake.storage.Storage;
+import javacake.storage.StorageManager;
 import javacake.ui.Ui;
 
 import static javacake.quiz.QuestionList.MAX_QUESTIONS;
@@ -59,14 +60,13 @@ public class ReviewSession implements QuizManager {
     /**
      * Executes the review of a quiz after a quiz is completed. For CLI mode.
      *
-     * @param progressStack how far the program is currently in in the table of contents.
+     * @param logic how far the program is currently in in the table of contents.
      * @param ui the UI responsible for inputs and outputs of the program.
-     * @param storage Storage to write updated data.
-     * @param profile Profile of the user.
+     * @param storageManager storage container.
+     * @return execution of back command when input is equal to "back".
      * @throws DukeException This method does not throw this exception.
-     * @return
      */
-    public String execute(ProgressStack progressStack, Ui ui, Storage storage, Profile profile) throws DukeException {
+    public String execute(Logic logic, Ui ui, StorageManager storageManager) throws DukeException {
         int index = 0;
         while (!isExitReview) {
             ui.showLine();
@@ -87,7 +87,7 @@ public class ReviewSession implements QuizManager {
             }
         }
         ui.showLine();
-        return new BackCommand().execute(progressStack, ui, storage, profile);
+        return new BackCommand().execute(logic, ui, storageManager);
     }
 
     private static boolean isValidInput(String input) {

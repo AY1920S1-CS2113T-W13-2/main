@@ -1,40 +1,39 @@
 package javacake.commands;
 
-import javacake.Parser;
 import javacake.exceptions.DukeException;
-import javacake.ProgressStack;
+import javacake.Logic;
 import javacake.storage.Profile;
+import javacake.storage.StorageManager;
 import javacake.storage.TaskList;
 import javacake.ui.Ui;
 import javacake.storage.Storage;
+
+import java.io.File;
 
 public class AddCommand extends Command {
     /**
      * Constructor for Adding of commands.
      * @param str Input string
-     * @throws DukeException Throws exception when empty task
      */
-    public AddCommand(String str) throws DukeException {
+    public AddCommand(String str) {
         input = str;
         type = CmdType.DEADLINE;
-        if (input.length() == 8) {
-            throw new DukeException("The description of a deadline cannot be empty!");
-        }
-
     }
 
     /**
      * Execute addition of tasks.
-     * @param progressStack TaskList containing current tasks
+     * @param logic TaskList containing current tasks
      * @param ui the Ui responsible for outputting messages
-     * @param storage Storage needed to write the updated data
+     * @param storageManager storage container
      * @throws DukeException Shows error when deletion is not possible
      * @return
      */
     @Override
-    public String execute(ProgressStack progressStack, Ui ui, Storage storage, Profile profile) throws DukeException {
-        String output = TaskList.runDeadline(storage.tasks.getData(), input, TaskList.TaskState.NOT_DONE);
-        storage.write(storage.tasks.getData());
+    public String execute(Logic logic, Ui ui, StorageManager storageManager) throws DukeException {
+        String output = TaskList.runDeadline(storageManager.storage.currentTaskData.getData(),
+                input, TaskList.TaskState.NOT_DONE);
+        Storage.generateFolder(new File("data/tasks/"));
+        storageManager.storage.write(storageManager.storage.currentTaskData.getData());
         return output;
 
 
