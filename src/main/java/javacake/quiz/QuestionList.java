@@ -47,7 +47,8 @@ public class QuestionList {
                 + "\nCorrect answer: " + chosenQuestions.get(index).getAnswer();
     }
 
-    public boolean setAndCheckUserAnswer(int index, String input) {
+    public boolean setAndCheckUserAnswer(int index, String input) throws CakeException {
+
         chosenQuestions.get(index).setUserAnswer(input);
         return (chosenQuestions.get(index).isAnswerCorrect(input));
     }
@@ -73,14 +74,11 @@ public class QuestionList {
                 throw new CakeException("Error in loading file :(");
             }
             String[] questions = stringBuilder.toString().substring(0,stringBuilder.length() - 1).split("\\|\\s*");
-            this.chosenQuestions.add(new Question(questions[0], questions[1]));
+            this.chosenQuestions.add(new Question(questions[0], questions[1], Integer.parseInt(questions[2])));
         }
         assert chosenQuestions.size() > 0;
     }
 
-    /**
-     * Randomly selects MAX_QUESTIONS number of questions indexes to chosenQuestionsIndex.
-     */
     private void pickQuestions() {
         Random rand = new Random();
 
@@ -92,5 +90,9 @@ public class QuestionList {
             chosenQuestionsIndex.add(randomNum);
         }
         assert (chosenQuestionsIndex.size() == MAX_QUESTIONS);
+    }
+
+    public QuestionType getQuestionType() {
+        return questionType;
     }
 }
