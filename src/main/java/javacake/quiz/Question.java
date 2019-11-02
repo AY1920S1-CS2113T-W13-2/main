@@ -53,7 +53,7 @@ public class Question {
     }
     
     private boolean isWithinNumberOfOptions(String input) {
-        int input = Integer.parseInt(input);
+        int tmp = Integer.parseInt(input);
         if (tmp < 1 || tmp > numberOfOptions) {
             return false;
         }
