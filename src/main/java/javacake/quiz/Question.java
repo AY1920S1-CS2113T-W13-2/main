@@ -46,10 +46,17 @@ public class Question {
      * @return true if input matches answer, false otherwise.
      */
     public boolean isAnswerCorrect(String input) throws CakeException {
-        int tmp = Integer.parseInt(input);
-        if (tmp < 1 || tmp > numberOfOptions) {
+        if (!isWithinNumberOfOptions(input)) {
             throw new CakeException("[!] Please enter option number between 1 and " + numberOfOptions + "! [!]\n");
         }
         return (input.trim().equals(answer));
+    }
+    
+    private boolean isWithinNumberOfOptions(String input) {
+        int input = Integer.parseInt(input);
+        if (tmp < 1 || tmp > numberOfOptions) {
+            return false;
+        }
+        return true;
     }
 }
