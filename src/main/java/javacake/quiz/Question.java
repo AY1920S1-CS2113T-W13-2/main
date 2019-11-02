@@ -8,6 +8,12 @@ public class Question {
     private String userAnswer;
     private int numberOfOptions;
 
+    /**
+     * Constructor for a multiple choice Question object.
+     * @param question the question text.
+     * @param answer the correct option for the question
+     * @param options number of answer options the question has.
+     */
     public Question(String question, String answer, int options) {
         this.question = question;
         this.answer = answer;

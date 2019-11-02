@@ -48,7 +48,6 @@ public class QuestionList {
     }
 
     public boolean setAndCheckUserAnswer(int index, String input) throws CakeException {
-
         chosenQuestions.get(index).setUserAnswer(input);
         return (chosenQuestions.get(index).isAnswerCorrect(input));
     }
