@@ -1,3 +1,5 @@
+package junittesting.quiztest;
+
 import javacake.exceptions.CakeException;
 import javacake.quiz.Question;
 import org.junit.jupiter.api.Test;
