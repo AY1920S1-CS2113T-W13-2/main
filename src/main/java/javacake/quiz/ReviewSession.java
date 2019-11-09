@@ -45,7 +45,6 @@ public class ReviewSession implements QuizManager {
     @Override
     public String parseInput(int index, String input) throws CakeException {
         if (input.equals("back")) {
-            // TODO tie BackCommand identifier to MainWindow
             return "!@#_BACK";
         } else if (isValidInput(input)) {
             int tmp = Integer.parseInt(input) - 1;
