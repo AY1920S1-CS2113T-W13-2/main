@@ -241,7 +241,7 @@ public class QuizSession implements QuizManager {
 
     private static boolean isNumeric(String input) {
         try {
-            Integer.parseInt(input);
+            Integer.parseInt(input.trim());
         } catch (NumberFormatException | NullPointerException e) {
             return false;
         }
