@@ -1,3 +1,5 @@
+package junittesting.deadlinetest;
+
 import javacake.JavaCake;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -10,7 +12,7 @@ import java.io.IOException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DeadlineNegativeTest {
-    JavaCake javaCake;
+    private JavaCake javaCake;
 
     /**
      * Initialise test files.
@@ -63,6 +65,15 @@ public class DeadlineNegativeTest {
     @Test
     public void test4() {
         String actualOut = javaCake.getResponse("deadline a /by31/01/2019");
+        String expOut = "[!] Improper format\n"
+                + "Please input:\n"
+                + "'deadline TASK /by TASK_DATE'";
+        assertEquals(expOut, actualOut);
+    }
+
+    @Test
+    public void test5() {
+        String actualOut = javaCake.getResponse("deadline a by 31/01/2019");
         String expOut = "[!] Improper format\n"
                 + "Please input:\n"
                 + "'deadline TASK /by TASK_DATE'";

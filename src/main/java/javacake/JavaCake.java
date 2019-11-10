@@ -12,23 +12,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class JavaCake {
-    private static Ui ui;
+    private Ui ui;
     private static Logic logic;
-    private static boolean isCliMode = true;
 
-    public static StorageManager storageManager;
-    //    public static Storage storage;
-    //    public static Profile profile;
-    public static boolean isFirstTimeUser;
-    public static String userName;
-    public static int userProgress = 0;
+    public StorageManager storageManager;
+    public boolean isFirstTimeUser;
+    public String userName;
+    public int userProgress = 0;
     public static Logger logger = Logger.getLogger("JavaCake");
 
 
     /**
      * Constructor for main class to initialise the settings.
      */
-    public JavaCake() {
+    public JavaCake() throws CakeException {
         logger.log(Level.INFO, "Starting JavaCake Constructor!");
         ui = new Ui();
         try {
@@ -43,6 +40,7 @@ public class JavaCake {
         } catch (CakeException e) {
             ui.showLoadingError();
             logger.log(Level.WARNING, "Profile set-up failed.");
+            throw new CakeException(e.getMessage());
         }
     }
 
@@ -50,6 +48,7 @@ public class JavaCake {
      * Constructor for main class to initialise the settings[TEST].
      */
     public JavaCake(String testFilePath) {
+
         logger.log(Level.INFO, "Starting JavaCake Constructor!");
         ui = new Ui();
         try {
@@ -141,9 +140,7 @@ public class JavaCake {
      */
     public String getResponse(String input) {
         logger.log(Level.INFO, "Getting response from input...");
-        if (isCliMode) {
-            isCliMode = false;
-        }
+        storageManager.profile.isCli = false;
         try {
             Command c = Parser.parse(input);
             return c.execute(logic, ui, storageManager);
@@ -153,17 +150,13 @@ public class JavaCake {
     }
 
     /**
-     * Public Method to get type of mode being run.
-     * @return true if is CLI mode
-     */
-    public static boolean isCliMode() {
-        return isCliMode;
-    }
-
-    /**
      * Program Start.
      */
     public static void main(String[] args) {
-        new JavaCake().runAsCli();
+        try {
+            new JavaCake().runAsCli();
+        } catch (CakeException e) {
+            System.out.println(e.getMessage());
+        }
     }
 }

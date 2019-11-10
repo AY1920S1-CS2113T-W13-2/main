@@ -2,7 +2,6 @@ package javacake.storage;
 
 import javacake.JavaCake;
 import javacake.exceptions.CakeException;
-import javacake.notes.Note;
 import javacake.tasks.Task;
 import org.apache.commons.io.FileUtils;
 
@@ -13,23 +12,17 @@ import java.io.FileReader;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.StringTokenizer;
 import java.util.logging.Level;
 
 public class Storage {
     private int stringBuffer = 7;
-    private static ArrayList<Task> tempTaskData = new ArrayList<>();
-    private static ArrayList<Note> noteCollection = new ArrayList<>();
-    public static TaskList currentTaskData;
+    private ArrayList<Task> tempTaskData = new ArrayList<>();
+    public TaskList currentTaskData;
 
     private static String defaultFilePath = "data";
     private String filepath;
-    private TaskType dataType;
+    private static boolean isResetFresh = false;
 
-
-    public enum TaskType {
-        TODO, DEADLINE, TODO_DAILY, TODO_WEEKLY, TODO_MONTHLY
-    }
 
     /**
      * Constructor for storage.
@@ -55,21 +48,7 @@ public class Storage {
         generateFolder(notesFile);
         JavaCake.logger.log(Level.INFO,"Filepath: " + filepath);
         try {
-            if (!tasksFile.getParentFile().getParentFile().exists()) {
-                tasksFile.getParentFile().getParentFile().mkdir();
-                tasksFile.getParentFile().mkdir();
-                tasksFile.createNewFile();
-                //System.out.println("A" + tasksFile.getParentFile().getParentFile().getPath());
-            } else if (!tasksFile.getParentFile().exists()) {
-                tasksFile.getParentFile().mkdir();
-                tasksFile.createNewFile();
-                //System.out.println("B" + tasksFile.getParentFile().getPath());
-            } else if (!tasksFile.exists()) {
-                tasksFile.createNewFile();
-                //System.out.println("C" + tasksFile.getPath());
-            } else {
-                JavaCake.logger.log(Level.INFO, filepath + " is found!");
-            }
+            initialiseStorage(tasksFile, altPath);
         } catch (IOException e) {
             JavaCake.logger.log(Level.WARNING, "Unable to create deadline file");
             throw new CakeException("Failed to create storage.");
@@ -77,38 +56,40 @@ public class Storage {
 
         try {
             BufferedReader reader = new BufferedReader(new FileReader(filepath));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                StringTokenizer stringTokenizer = new StringTokenizer(line, "|");
-                int count = 1;
-                StringBuilder finalOutput = new StringBuilder();
-                String currStr;
-                boolean isChecked = false;
-
-                while (stringTokenizer.hasMoreTokens()) {
-                    currStr = stringTokenizer.nextToken();
-                    if (count == 1) {
-                        if (currStr.equals("D")) {
-                            finalOutput = new StringBuilder("deadline ");
-                            this.dataType = TaskType.DEADLINE;
-                        }
-                    } else if (count == 2 && currStr.equals("✓")) {
-                        isChecked = true;
-                    } else if (count == 3) {
-                        finalOutput.append(currStr);
-                    } else if (count == 4) {
-                        if (this.dataType == TaskType.DEADLINE) {
-                            finalOutput.append(" /by ").append(currStr);
-                        }
-                    }
-                    count++;
+            String lineToRead;
+            while ((lineToRead = reader.readLine()) != null) {
+                String currStr = "";
+                boolean isChecked;
+                String[] listOfStrings = lineToRead.split("\\|");
+                if (listOfStrings.length != 4) {
+                    throw new CakeException("DEADLINE LENGTH INVALID: " + listOfStrings.length);
                 }
+
+                currStr += "deadline ";
+                if (!"D".equals(listOfStrings[0])) {
+                    throw new CakeException("DEADLINE EXP 0: " + listOfStrings[0]);
+                }
+
+                if ("✓".equals(listOfStrings[1])) {
+                    isChecked = true;
+                } else if ("✗".equals(listOfStrings[1])) {
+                    isChecked = false;
+                } else {
+                    throw new CakeException("DEADLINE EXP 1: " + listOfStrings[1]);
+                }
+
+                //append taskname
+                currStr += listOfStrings[2];
+                currStr += " /by ";
+                currStr += listOfStrings[3];
+
+                System.out.println("CurrStr: " + currStr);
                 if (!isChecked) {
-                    TaskList.runDeadline(tempTaskData, finalOutput.toString(), TaskList.TaskState.NOT_DONE);
+                    TaskList.runDeadline(tempTaskData, currStr, TaskList.TaskState.NOT_DONE);
                     this.currentTaskData.add(tempTaskData.get(0));
                     tempTaskData.clear();
                 } else {
-                    TaskList.runDeadline(tempTaskData, finalOutput.toString(), TaskList.TaskState.DONE);
+                    TaskList.runDeadline(tempTaskData, currStr, TaskList.TaskState.DONE);
                     this.currentTaskData.add(tempTaskData.get(0));
                     tempTaskData.clear();
                 }
@@ -121,6 +102,34 @@ public class Storage {
 
     }
 
+    private void initialiseStorage(File tasksFile, String altPath) throws IOException {
+        boolean isCleanSlate = true;
+        if (!tasksFile.getParentFile().getParentFile().exists()) {
+            tasksFile.getParentFile().getParentFile().mkdir();
+            JavaCake.logger.log(Level.INFO, "StoreGrandpa");
+        }
+        if (!tasksFile.getParentFile().exists()) {
+            tasksFile.getParentFile().mkdir();
+            JavaCake.logger.log(Level.INFO, "StorePapa");
+        }
+        if (!tasksFile.exists()) {
+            tasksFile.createNewFile();
+            JavaCake.logger.log(Level.INFO, "StoreP");
+        } else {
+            isCleanSlate = false;
+            JavaCake.logger.log(Level.INFO, filepath + " is found!");
+        }
+
+        //populate with testing trash
+        if (!isResetFresh && isCleanSlate && "data".equals(altPath)) {
+            PrintWriter out = new PrintWriter(filepath);
+            out.println("D|✗|testmessage to show the39characterlimit|01 01 2019 0001");
+            out.println("D|✗|finish javacake|31-12-19 23:59");
+            out.println("D|✗|start dieting on java|01/01/2019");
+            out.close();
+        }
+    }
+
     public static String returnNotesDefaultFilePath() {
         return defaultFilePath + "/notes/";
     }
@@ -128,7 +137,8 @@ public class Storage {
     /**
      * Method to hard reset profile.
      */
-    public static void resetStorage() throws CakeException {
+    public void resetStorage() throws CakeException {
+        isResetFresh = true;
         try {
             FileUtils.deleteDirectory(new File(defaultFilePath));
             tempTaskData.clear();
@@ -141,7 +151,6 @@ public class Storage {
     /**
      * Generates starting folder when program starts.
      * @param sampleFile File that is auto-generated when program starts.
-     * @throws CakeException If file does not exist.
      */
     public static void generateFolder(File sampleFile) {
         if (!sampleFile.getParentFile().exists()) {
@@ -187,7 +196,7 @@ public class Storage {
         st1 = task.toString().substring(1, 2);
         String st4 = null;
         //Appends extra task details for all task types excent 'Todo'
-        if (st1.equals("D") || st1.equals("E") || st1.equals("d") || st1.equals("m") || st1.equals("w")) {
+        if ("D".equals(st1)) {
             st4 = task.getExtra();
         }
         String st2;
@@ -212,15 +221,7 @@ public class Storage {
         return str.toString();
     }
 
-    /**
-     * Method to get size of internal data.
-     * @return size of internal data
-     */
-    public static int getInternalDataSize() {
-        return currentTaskData.size();
-    }
-
     public ArrayList<Task> getData() {
-        return this.currentTaskData.getData();
+        return currentTaskData.getData();
     }
 }

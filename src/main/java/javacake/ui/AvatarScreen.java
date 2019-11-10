@@ -1,17 +1,13 @@
 package javacake.ui;
 
+import javacake.JavaCake;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.beans.Observable;
-import javafx.beans.value.ObservableValue;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.DialogPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -19,14 +15,13 @@ import javafx.util.Duration;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 public class AvatarScreen extends VBox {
     @FXML
     private GridPane gridAvatar;
     @FXML
     private ImageView avatarImage;
-
-    private boolean isAvatarSwitched = false;
 
     public enum AvatarMode {
         HAPPY, EXTHAPPY, SAD, POUT
@@ -48,8 +43,7 @@ public class AvatarScreen extends VBox {
             "/images/avatar/poutopen.png"));
     private Image avatarPout2 = new Image(this.getClass().getResourceAsStream(
             "/images/avatar/poutclose.png"));
-    List<Image> images = new ArrayList<>();
-    private int imageIndex = 0;
+    private List<Image> images = new ArrayList<>();
     private int timeFrame = 0;
     public static AvatarMode avatarMode;
 
@@ -78,11 +72,14 @@ public class AvatarScreen extends VBox {
             e.printStackTrace();
         }
         avatarImage.fitHeightProperty().bind(gridAvatar.heightProperty());
-        //avatarImage.setPreserveRatio(true);
 
         initialiseList();
         avatarMode = type;
         setStyleLoop();
+        avatarImage.setOnMouseClicked(event -> {
+            JavaCake.logger.log(Level.INFO, "Initiating bully mode!");
+            MainWindow.isStupidUser = true;
+        });
     }
 
     /**
