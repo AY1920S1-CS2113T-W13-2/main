@@ -2,13 +2,10 @@ package junittesting.quiztest;
 
 import javacake.JavaCake;
 import javacake.exceptions.CakeException;
-import javacake.quiz.Question;
 import javacake.quiz.QuestionDifficulty;
-import javacake.quiz.QuestionList;
 import javacake.quiz.QuestionType;
 import javacake.quiz.QuizSession;
 import javacake.quiz.ReviewSession;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
